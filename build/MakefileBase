@@ -1,0 +1,39 @@
+.PHONY: default base base_no_miri base_no_miri_no_clippy lint test ok all
+
+default: all
+
+base: lint test
+
+base_no_miri: lint test
+
+base_no_miri_no_clippy: lint_no_clippy test
+
+lint: lint_no_clippy
+	cargo clippy
+	@if [ "$$(cargo clippy 2>&1 | grep -v Finished | grep -v Checking)" ]; \
+		then exit 1; \
+	fi
+
+lint_no_clippy:
+	cargo fmt -- --check
+
+	@if [ -f ./src/lib.rs ]; then \
+		if [ "$$(head -n 1 ./src/lib.rs)" != "#![forbid(unsafe_code)]" ]; then \
+			echo "'#![forbid(unsafe_code)]' must be at the top of lib.rs"; \
+			exit 1; \
+		fi \
+	fi
+
+	@if [ -f ./src/main.rs ]; then \
+		if [ "$$(head -n 1 ./src/main.rs)" != "#![forbid(unsafe_code)]" ]; then \
+			echo "'#![forbid(unsafe_code)]' must be at the top of main.rs"; \
+			exit 1; \
+		fi \
+	fi
+
+test:
+	cargo test
+	cargo test --release
+
+ok:
+	@echo 'OK!'
