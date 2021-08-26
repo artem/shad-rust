@@ -1,0 +1,5 @@
+grade:
+  image: eu.gcr.io/shad-ts/grader/rust
+  script:
+    - cargo run --manifest-path /opt/shad/rust/tools/check/Cargo.toml --student-repo $CI_PROJECT_DIR --original-repo /opt/shad/rust --ci-branch-name $CI_COMMIT_REF_NAME --user-id $GITLAB_USER_ID --tester-token $TESTER_TOKEN
+  timeout: 10 minutes
