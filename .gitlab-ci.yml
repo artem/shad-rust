@@ -8,5 +8,4 @@ grade:
       --original-repo /opt/shad/rust
       --ci-branch-name $CI_COMMIT_REF_NAME
       --user-id $GITLAB_USER_ID
-      --tester-token $TESTER_TOKEN
   timeout: 10 minutes
