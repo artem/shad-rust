@@ -37,3 +37,7 @@ test:
 
 ok:
 	@echo 'OK!'
+
+submit:
+	cargo run --manifest-path ../tools/submit/Cargo.toml -- --task-path .
+	@echo 'OK!'

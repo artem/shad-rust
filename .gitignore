@@ -2,7 +2,6 @@
 **/.vscode
 **/target
 **/vendor
-tools/**/Cargo.lock
 seminar/**/Cargo.lock
 seminar/binary
 seminar/text
