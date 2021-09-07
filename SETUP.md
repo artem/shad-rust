@@ -74,7 +74,7 @@
    * [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=matklad.rust-analyzer)
    * [CodeLLDB](https://marketplace.visualstudio.com/items?itemName=vadimcn.vscode-lldb)
 
-1. В VS Code нажмите "File" -> "Open Workspace", откройте директорию, куда вы склонировали репозиторий курса.
+1. В VS Code нажмите "File" -> "Open Folder", откройте директорию, куда вы склонировали репозиторий курса.
 
 ### Отправка решения
 
@@ -93,6 +93,6 @@
 
 1. Отправьте своё решение на сервер командой `make submit`. Ваш сабмит должен появиться по ссылке "SUBMITS" на [rust.manytask.org](https://rust.manytask.org).
 После успешного прохождения тестов вам должно начислиться 0 баллов в
-[таблице с баллами](https://docs.google.com/spreadsheets/d/1EEbtbZyL5OsjZ4tseMsN4H2REs04iaHWHdVSZISupx4/edit#gid=0).
+[таблице с баллами].
 
 Если на каком-то этапе у вас возникли проблемы - пишите в чат курса.
