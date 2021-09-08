@@ -14,9 +14,10 @@ let args = std::env::args().collect::<Vec<String>>();
 use std::io::BufRead;
 
 let file = std::fs::File::open(path).unwrap();
-let mut reader = std::io::BufReader::new(file);
-let mut line = String::new();
-reader.read_line(&mut line).unwrap();
+let reader = std::io::BufReader::new(file);
+for line in reader.lines() {
+    // ...
+}
 ```
 
 Метод `read_line` добавляет содержимое прочитанной строчки **в конец** `line` и возвращает кол-во прочитанных байт. Если `read_line` вернул 0, это значит, что файл успешно прочитан до конца.
