@@ -4,3 +4,12 @@
   tasks:
     - task: add
       score: 0
+
+- group:    Basics
+  start:    08-09-2021 19:30
+  deadline: 22-09-2021 19:30
+  tasks:
+    - task: comm
+      score: 100
+    - task: puzzle
+      score: 200

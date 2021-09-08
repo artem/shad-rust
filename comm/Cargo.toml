@@ -1,0 +1,14 @@
+[package]
+name = "comm"
+version = "0.1.0"
+edition = "2018"
+
+[dev-dependencies]
+criterion = "0.3"
+pretty_assertions = "0.7"
+rand = "0.8"
+tempfile = "3"
+
+[[bench]]
+name = "benches"
+harness = false
