@@ -1,0 +1,10 @@
+[workspace]
+members = [
+    # Tasks
+    "add",
+    "comm",
+    "puzzle",
+
+    # Tools
+    "tools/submit",
+]
