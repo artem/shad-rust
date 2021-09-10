@@ -20,7 +20,7 @@ for line in reader.lines() {
 }
 ```
 
-* Для эффективного построения пересечения двух файлов используйте [HashSet](https://doc.rust-lang.org/stable/std/collections/struct.HashSet.html). Вам понядобятся методы `insert` и `contains` (или `take`).
+* Для эффективного построения пересечения двух файлов используйте [HashSet](https://doc.rust-lang.org/stable/std/collections/struct.HashSet.html). Вам понадобятся методы `insert` и `contains` (или `take`).
 
 * Запись в stdout в простом виде осуществляется вызовом `println!("{}", line)`.
 
@@ -29,9 +29,9 @@ for line in reader.lines() {
 ```rust
 use std::{
     collections::HashSet,
-    env::args,
-	fs::File,
-    io::{BufReader, BufRead, Write},
+    env,
+    fs::File,
+    io::{BufRead, BufReader},
 };
 ```
 
