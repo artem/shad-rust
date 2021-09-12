@@ -8,8 +8,8 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use rand::{distributions::Alphanumeric, seq::SliceRandom, thread_rng, Rng};
 use tempfile::{NamedTempFile, TempPath};
 
-const RUST_BINARY_PATH: &str = "./target/release/comm";
-const CPP_BINARY_PATH: &str = "./target/release/comm_cpp";
+const RUST_BINARY_PATH: &str = "../target/release/comm";
+const CPP_BINARY_PATH: &str = "../target/release/comm_cpp";
 
 fn run_comm(path: &str, first: &[String], second: &[String]) -> Vec<String> {
     fn create_tempfile(data: &[String]) -> io::Result<TempPath> {
