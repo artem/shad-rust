@@ -4,6 +4,8 @@ members = [
     "add",
     "comm",
     "puzzle",
+    "bst",
+    "ini",
 
     # Tools
     "tools/submit",

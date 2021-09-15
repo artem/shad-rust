@@ -13,3 +13,12 @@
       score: 100
     - task: puzzle
       score: 200
+
+- group:    Borrowing & slices
+  start:    15-09-2021 19:30
+  deadline: 29-09-2021 19:30
+  tasks:
+    - task: bst
+      score: 100
+    - task: ini
+      score: 100

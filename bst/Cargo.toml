@@ -1,0 +1,17 @@
+[package]
+name = "bst"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+libc = "0.2"
+
+[dev-dependencies]
+cbst = { path = "./cbst" }
+criterion = "0.3"
+pretty_assertions = "0.7"
+rand = "0.8"
+
+[[bench]]
+name = "benches"
+harness = false
