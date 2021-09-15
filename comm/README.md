@@ -68,17 +68,17 @@ make bench
 Авторское решение показывает такие результаты:
 
 ```
-50k_50k/rust    time:   [628.36 ms 632.64 ms 637.49 ms]
-                change: [-1.6825% -0.6563% +0.3585%] (p = 0.24 > 0.05)
-                No change in performance detected.
-50k_50k/cpp     time:   [646.73 ms 649.33 ms 653.10 ms]
-                change: [-1.1657% -0.5865% +0.0404%] (p = 0.10 > 0.05)
-                No change in performance detected.
+50k_50k/rust            time:   [38.680 ms 38.818 ms 39.059 ms]
+                        change: [-40.129% -35.653% -32.084%] (p = 0.00 < 0.05)
+                        Performance has improved.
+50k_50k/cpp             time:   [54.619 ms 54.719 ms 54.871 ms]
+                        change: [-28.337% -26.592% -24.540%] (p = 0.00 < 0.05)
+                        Performance has improved.
 
-0_100k/rust     time:   [619.21 ms 622.04 ms 626.23 ms]
-                change: [-2.0896% -1.1815% -0.2226%] (p = 0.03 < 0.05)
-                Change within noise threshold.
-0_100k/cpp      time:   [634.78 ms 637.42 ms 640.40 ms]
-                change: [-1.6373% -0.7636% +0.0343%] (p = 0.10 > 0.05)
-                No change in performance detected.
+0_100k/rust             time:   [32.152 ms 32.212 ms 32.273 ms]
+                        change: [-35.365% -33.432% -31.427%] (p = 0.00 < 0.05)
+                        Performance has improved.
+0_100k/cpp              time:   [46.784 ms 46.864 ms 46.980 ms]
+                        change: [-26.213% -24.166% -21.912%] (p = 0.00 < 0.05)
+                        Performance has improved.
 ```

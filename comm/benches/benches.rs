@@ -1,5 +1,5 @@
 use std::{
-    io::{self, Write},
+    io::{self, BufWriter, Write},
     iter,
     process::Command,
 };
@@ -11,34 +11,28 @@ use tempfile::{NamedTempFile, TempPath};
 const RUST_BINARY_PATH: &str = "../target/release/comm";
 const CPP_BINARY_PATH: &str = "../target/release/comm_cpp";
 
-fn run_comm(path: &str, first: &[String], second: &[String]) -> Vec<String> {
-    fn create_tempfile(data: &[String]) -> io::Result<TempPath> {
-        let (mut file, path) = NamedTempFile::new()?.into_parts();
-        for line in data {
-            file.write_all(line.as_bytes())?;
-            file.write(b"\n")?;
-        }
-        file.flush()?;
-        Ok(path)
+fn create_tempfile(data: &[String]) -> io::Result<TempPath> {
+    let (file, path) = NamedTempFile::new()?.into_parts();
+    let mut writer = BufWriter::new(file);
+    for line in data {
+        writer.write_all(line.as_bytes())?;
+        writer.write(b"\n")?;
     }
+    writer.flush()?;
+    Ok(path)
+}
 
-    let first_path = create_tempfile(first).expect("failed to create temp file");
-    let second_path = create_tempfile(second).expect("failed to create temp file");
+fn create_tempfiles(first: &[String], second: &[String]) -> io::Result<(TempPath, TempPath)> {
+    Ok((create_tempfile(first)?, create_tempfile(second)?))
+}
+
+fn run_comm(path: &str, first: &TempPath, second: &TempPath) {
     let output = Command::new(path)
-        .args(&[first_path, second_path])
+        .args(&[first, second])
         .output()
         .expect("failed to call comm");
 
     assert!(output.status.success(), "comm process failed");
-
-    let mut result: Vec<String> = String::from_utf8(output.stdout)
-        .expect("comm result is not a valid utf-8")
-        .split('\n')
-        .map(|s| s.to_string())
-        .collect();
-    result.pop(); // remove empty string
-
-    result
 }
 
 fn generate_input(
@@ -78,11 +72,14 @@ fn bench_50k_50k(c: &mut Criterion) {
         .measurement_time(std::time::Duration::from_secs(10));
 
     let (first, second) = generate_input(50_000, 50_000, 50_000);
+    let (first_path, second_path) =
+        create_tempfiles(&first, &second).expect("failed to create tempfiles");
+
     group.bench_function("rust", |b| {
-        b.iter(|| black_box(run_comm(RUST_BINARY_PATH, &first, &second)))
+        b.iter(|| black_box(run_comm(RUST_BINARY_PATH, &first_path, &second_path)))
     });
     group.bench_function("cpp", |b| {
-        b.iter(|| black_box(run_comm(CPP_BINARY_PATH, &first, &second)))
+        b.iter(|| black_box(run_comm(CPP_BINARY_PATH, &first_path, &second_path)))
     });
 }
 
@@ -93,11 +90,14 @@ fn bench_0_100k(c: &mut Criterion) {
         .measurement_time(std::time::Duration::from_secs(10));
 
     let (first, second) = generate_input(0, 100_000, 100_000);
+    let (first_path, second_path) =
+        create_tempfiles(&first, &second).expect("failed to create tempfiles");
+
     group.bench_function("rust", |b| {
-        b.iter(|| black_box(run_comm(RUST_BINARY_PATH, &first, &second)))
+        b.iter(|| black_box(run_comm(RUST_BINARY_PATH, &first_path, &second_path)))
     });
     group.bench_function("cpp", |b| {
-        b.iter(|| black_box(run_comm(CPP_BINARY_PATH, &first, &second)))
+        b.iter(|| black_box(run_comm(CPP_BINARY_PATH, &first_path, &second_path)))
     });
 }
 
