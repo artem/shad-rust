@@ -67,7 +67,7 @@
     ```
     rustup component add rustfmt
     rustup component add clippy
-	cargo install cargo-criterion
+    cargo install cargo-criterion
     ```
 
 1. Установите [VS Code](https://code.visualstudio.com).

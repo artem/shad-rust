@@ -56,7 +56,7 @@ bool cbst_insert(struct cbst* cbst, int64_t key) {
         return false;
     }
 
-    struct node* new = malloc(sizeof(node));
+    struct node* new = malloc(sizeof(struct node));
     new->key = key;
     new->left = NULL;
     new->right = NULL;
