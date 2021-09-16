@@ -62,11 +62,12 @@
 Официально поддерживаемой средой разработки является VS Code, однако вы вольны использовать любые редакторы/IDE, которые вам нравятся.
 
 1. Установите Rust, следуя [официальному руководству](https://www.rust-lang.org/tools/install).
-1. Установите форматтер и линтер:
+1. Установите форматтер, линтер и утилиту бенчмаркинга:
 
     ```
     rustup component add rustfmt
     rustup component add clippy
+	cargo install cargo-criterion
     ```
 
 1. Установите [VS Code](https://code.visualstudio.com).
