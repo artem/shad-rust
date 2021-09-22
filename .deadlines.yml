@@ -22,3 +22,14 @@
       score: 100
     - task: ini
       score: 100
+
+- group:    Enums, pattern matching & traits
+  start:    22-09-2021 19:30
+  deadline: 06-10-2021 19:30
+  tasks:
+    - task: polka
+      score: 100
+    - task: trust
+      score: 100
+    - task: flatmap
+      score: 200

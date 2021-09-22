@@ -6,6 +6,9 @@ members = [
     "puzzle",
     "bst",
     "ini",
+    "polka",
+    "trust",
+    "flatmap",
 
     # Tools
     "tools/submit",
