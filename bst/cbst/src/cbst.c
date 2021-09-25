@@ -1,5 +1,6 @@
-#include <stdlib.h>
 #include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 struct node {
     int64_t key;
