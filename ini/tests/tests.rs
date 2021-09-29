@@ -242,15 +242,6 @@ fn test_missing_bracket() {
 
 #[test]
 #[should_panic]
-fn test_key_with_bracket() {
-    parse(
-        "[section]\n\
-         abra = [cadabra]",
-    );
-}
-
-#[test]
-#[should_panic]
 fn test_double_bracket() {
     parse(
         "[[section]]\n\
