@@ -1,6 +1,6 @@
 - group:    Project 1
-  start:    22-09-2021 19:30
-  deadline: 06-10-2021 19:30
+  start:    29-09-2021 19:30
+  deadline: 20-10-2021 19:30
   tasks:
     - task: ripgzip
       score: 1
