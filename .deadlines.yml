@@ -1,27 +1,9 @@
-- group:    Test
-  start:    01-08-2021 18:00
-  deadline: 13-09-2021 18:00
+- group:    Project 1
+  start:    22-09-2021 19:30
+  deadline: 06-10-2021 19:30
   tasks:
-    - task: add
-      score: 0
-
-- group:    Basics
-  start:    08-09-2021 19:30
-  deadline: 22-09-2021 19:30
-  tasks:
-    - task: comm
-      score: 100
-    - task: puzzle
-      score: 200
-
-- group:    Borrowing & slices
-  start:    15-09-2021 19:30
-  deadline: 29-09-2021 19:30
-  tasks:
-    - task: bst
-      score: 100
-    - task: ini
-      score: 100
+    - task: ripgzip
+      score: 1
 
 - group:    Enums, pattern matching & traits
   start:    22-09-2021 19:30
@@ -33,3 +15,28 @@
       score: 100
     - task: flatmap
       score: 200
+
+- group:    Borrowing & slices
+  start:    15-09-2021 19:30
+  deadline: 30-09-2021 19:30
+  tasks:
+    - task: bst
+      score: 100
+    - task: ini
+      score: 100
+
+- group:    Basics
+  start:    08-09-2021 19:30
+  deadline: 22-09-2021 19:30
+  tasks:
+    - task: comm
+      score: 100
+    - task: puzzle
+      score: 200
+
+- group:    Test
+  start:    01-08-2021 18:00
+  deadline: 13-09-2021 18:00
+  tasks:
+    - task: add
+      score: 0

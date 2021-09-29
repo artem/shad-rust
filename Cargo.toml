@@ -9,6 +9,7 @@ members = [
     "polka",
     "trust",
     "flatmap",
+    "ripgzip",
 
     # Tools
     "tools/submit",

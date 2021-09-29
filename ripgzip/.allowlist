@@ -1,0 +1,6 @@
+src/bit_reader.rs
+src/deflate.rs
+src/gzip.rs
+src/huffman_coding.rs
+src/lib.rs
+src/tracking_writer.rs
