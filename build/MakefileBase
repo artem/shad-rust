@@ -2,11 +2,11 @@
 
 default: all
 
-base: lint test
+base: lint test allowlist
 
-base_no_miri: lint test
+base_no_miri: lint test allowlist
 
-base_no_miri_no_clippy: lint_no_clippy test
+base_no_miri_no_clippy: lint_no_clippy test allowlist
 
 lint: lint_no_clippy
 	cargo clippy
@@ -34,6 +34,12 @@ lint_no_clippy:
 test:
 	cargo test
 	cargo test --release
+
+allowlist:
+	@if [ ! -f ./.allowlist ]; then \
+		echo "missing .allowlist"; \
+		exit 1; \
+	fi
 
 ok:
 	@echo 'OK!'
