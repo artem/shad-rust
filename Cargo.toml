@@ -10,6 +10,9 @@ members = [
     "trust",
     "flatmap",
     "ripgzip",
+    "pstack",
+    "mpsc",
+    "context",
 
     # Tools
     "tools/submit",
