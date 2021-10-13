@@ -1,3 +1,12 @@
+- group:    Macros
+  start:    13-10-2021 19:30
+  deadline: 27-10-2021 19:30
+  tasks:
+    - task: stdmacro
+      score: 100
+    - task: gc
+      score: 300
+
 - group:    Smart pointers & interior mutability
   start:    06-10-2021 19:30
   deadline: 20-10-2021 19:30

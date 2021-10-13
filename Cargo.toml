@@ -13,6 +13,8 @@ members = [
     "pstack",
     "mpsc",
     "context",
+    "stdmacro",
+    "gc",
 
     # Tools
     "tools/submit",
