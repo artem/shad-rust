@@ -18,7 +18,7 @@
 
 - group:    Smart pointers & interior mutability
   start:    06-10-2021 19:30
-  deadline: 20-10-2021 19:30
+  deadline: 21-10-2021 19:30
   tasks:
     - task: pstack
       score: 100
@@ -29,7 +29,7 @@
 
 - group:    Project 1
   start:    29-09-2021 19:30
-  deadline: 20-10-2021 19:30
+  deadline: 21-10-2021 19:30
   tasks:
     - task: ripgzip
       score: 1
