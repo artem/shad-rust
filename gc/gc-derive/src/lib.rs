@@ -7,3 +7,4 @@ pub fn derive_scan(input: TokenStream) -> TokenStream {
     // TODO: your code here.
     unimplemented!()
 }
+
