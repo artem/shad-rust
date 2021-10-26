@@ -44,7 +44,4 @@
 `&mut [&mut Callback]`. Вызываясь рекурсивно для поддиректории, вы можете сделать partition
 этого списка коллбеков по критерию заинтересованности, и вызваться для поддиректории с подслайсом
 исходного слайса (`&mut callbacks[..index]`).
-* В std есть функция [partition_in_place](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.partition_in_place),
-но она unstable. Можете либо написать её аналог (без всяких DoubleEndedIterator, конечно), либо
-использовать [partition](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.partition) -
-но она возвращает результат в виде новых контейнеров, т.е. делает аллокации.
+* Для партицирования в std есть функции [partition_in_place](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.partition_in_place) (unstable) и [partition](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.partition) - но они вам не подойдут, потому в них функция принимает константную ссылку на элемент (а вам нужна mut-ссылка на callback, чтобы позвать FnMut). Скорее всего, вам придётся реализовать свой partition с правильной сигнатурой.
