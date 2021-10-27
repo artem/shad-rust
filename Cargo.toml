@@ -17,6 +17,7 @@ members = [
     "gc",
     "itertools",
     "fswalk",
+    "orm",
 
     # Tools
     "tools/submit",

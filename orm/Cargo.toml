@@ -1,0 +1,16 @@
+[package]
+name = "orm"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+orm-derive = { path = "./orm-derive" }
+rusqlite = "0.25"
+thiserror = "1.0"
+
+[dev-dependencies]
+tempfile = "3.2"
+
+[features]
+test_lifetimes_create = []
+test_lifetimes_get = []
