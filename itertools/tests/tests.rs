@@ -155,20 +155,6 @@ fn test_extract_nonexistent() {
 }
 
 #[test]
-fn test_extract_advances_count() {
-    struct Int(usize);
-    let mut iter: Box<dyn Iterator<Item = Int>> = Box::new((0..5).map(Int));
-
-    let (tracked_iter, advanced_count) = TrackedIterator::new(iter);
-
-    let (extracted, new_iter) = itertools::extract(tracked_iter, 1);
-
-    assert_eq!(extracted.unwrap().0, 1);
-    
-    assert_eq!(advanced_count.get(), 2);
-}
-
-#[test]
 fn test_tee_simple() {
     let elems = (0..5).map(Clonable::new).collect::<Vec<_>>();
     let (tracked_iter, advanced_count) = TrackedIterator::new(elems.clone());
