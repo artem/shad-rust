@@ -224,6 +224,7 @@ rusqlite можно посмотреть в [документации](https://d
 
 * Драйвер SQLite3 написан на С, так что вам нужно поставить его без помощи cargo. На Ubuntu
 это делается так: `sudo apt install libsqlite3-dev`.
+* При реализации `Tx::borrow` и `Tx::borrow_mut` вам могут потребоваться [Ref::map](https://doc.rust-lang.org/std/cell/struct.Ref.html#method.map) и [RefMut::map](https://doc.rust-lang.org/std/cell/struct.RefMut.html#method.map).
 * Начните с того, что заставьте заработать тест `test_create` (в нём использованы
 методы `tx.create()`, `tx.get()` и `tx.commit()`).
 * Derive macro лучше реализовывать в самую последнюю очередь; сначала напишите реализации
