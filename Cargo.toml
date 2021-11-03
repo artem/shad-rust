@@ -18,6 +18,8 @@ members = [
     "itertools",
     "fswalk",
     "orm",
+    "threadpool",
+    "pargrep",
 
     # Tools
     "tools/submit",
