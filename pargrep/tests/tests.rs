@@ -112,7 +112,7 @@ fn test_tree() {
 
     let tmp_dir = make_tree(tree_desc).unwrap();
 
-    let events = pargrep::run(tmp_dir, "substring");
+    let events = pargrep::run(tmp_dir.path(), "substring");
     let mut matches = events
         .into_iter()
         .map(|ev| match ev {
