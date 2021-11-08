@@ -1,6 +1,6 @@
 - group:    Multithreading
   start:    03-11-2021 19:30
-  deadline: 17-11-2021 19:30
+  deadline: 20-11-2021 19:30
   tasks:
     - task: threadpool
       score: 200
