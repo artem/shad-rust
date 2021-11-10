@@ -1,0 +1,10 @@
+[package]
+name = "tcp_proxy"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clap = "3.0.0-beta.5"
+log = "0.4"
+rand = "0.8"
+simplelog = "0.10"

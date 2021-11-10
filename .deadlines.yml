@@ -1,3 +1,10 @@
+- group:    Networking
+  start:    10-11-2021 19:30
+  deadline: 24-11-2021 19:30
+  tasks:
+    - task: tcp_proxy
+      score: 200
+
 - group:    Multithreading
   start:    03-11-2021 19:30
   deadline: 20-11-2021 19:30

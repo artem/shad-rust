@@ -20,6 +20,7 @@ members = [
     "orm",
     "threadpool",
     "pargrep",
+    "tcp_proxy",
 
     # Tools
     "tools/submit",
