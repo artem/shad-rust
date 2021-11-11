@@ -17,16 +17,16 @@ fn start_proxy() -> (TcpListener, Child, String) {
     let mut rng = rand::thread_rng();
     let port = rng.gen_range(40000..49151);
 
-    let server = TcpListener::bind("::1:0").unwrap();
+    let server = TcpListener::bind("127.0.0.1:0").unwrap();
     let port_str = format!("{}", port);
-    let server_str = format!("::1:{}", server.local_addr().unwrap().port());
+    let server_str = format!("127.0.0.1:{}", server.local_addr().unwrap().port());
 
     let proxy_proc = Command::new(BINARY_PATH)
         .args(&["-p", &port_str, "-d", &server_str])
         .spawn()
         .unwrap();
     thread::sleep(time::Duration::from_millis(10));
-    (server, proxy_proc, format!("::1:{}", port))
+    (server, proxy_proc, format!("127.0.0.1:{}", port))
 }
 
 #[test]
