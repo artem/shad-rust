@@ -13,7 +13,7 @@ struct Opts {
     dest: String,
 }
 
-fn main() -> std::io::Result<()> {
+fn main() {
     TermLogger::init(
         LevelFilter::Info,
         Config::default(),
@@ -22,7 +22,6 @@ fn main() -> std::io::Result<()> {
     )
     .unwrap();
 
-    let opts: Opts = Opts::parse();
+    let opts = Opts::parse();
     run_proxy(opts.port, opts.dest);
-    Ok(())
 }
