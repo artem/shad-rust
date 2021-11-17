@@ -1,3 +1,10 @@
+- group:    Project 3
+  start:    17-11-2021 19:30
+  deadline: 15-12-2021 19:30
+  tasks:
+    - task: babencoin
+      score: 1
+
 - group:    Networking
   start:    10-11-2021 19:30
   deadline: 24-11-2021 19:30

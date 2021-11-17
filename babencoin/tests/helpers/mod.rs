@@ -1,0 +1,230 @@
+#![allow(dead_code)]
+
+use babencoin::{
+    data::{Block, BlockHash, PeerMessage, HASH_LEN},
+    node,
+};
+
+use anyhow::{bail, Context, Result};
+use rand::{thread_rng, Rng};
+use rsa::{algorithms::generate_multi_prime_key, RSAPrivateKey, RSAPublicKey};
+use tempfile::NamedTempFile;
+
+use std::{
+    io::{self, ErrorKind, Read, Write},
+    net::{SocketAddr, TcpStream},
+    process::{Child, Command},
+    thread::sleep,
+    time::{Duration, Instant},
+};
+
+////////////////////////////////////////////////////////////////////////////////
+
+const NODE_BINARY_PATH: &str = "../target/debug/babencoin";
+const DEFAULT_READ_TIMEOUT: Duration = Duration::from_secs(3);
+
+////////////////////////////////////////////////////////////////////////////////
+
+pub struct Env {
+    node: Child,
+    addr: SocketAddr,
+}
+
+impl Default for Env {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl Drop for Env {
+    fn drop(&mut self) {
+        self.node.kill().ok();
+    }
+}
+
+impl Env {
+    pub fn new() -> Self {
+        Self::with_config(node::Config::default())
+    }
+
+    pub fn with_config(mut config: node::Config) -> Self {
+        let port = thread_rng().gen_range(49152..65536);
+        let addr: SocketAddr = format!("127.0.0.1:{}", port).parse().unwrap();
+        config.peer_service.listen_address = Some(addr.to_string());
+
+        let mut config_file = NamedTempFile::new().unwrap();
+        config_file
+            .write_all(serde_json::to_string_pretty(&config).unwrap().as_bytes())
+            .unwrap();
+        config_file.flush().unwrap();
+
+        let node = Command::new(NODE_BINARY_PATH)
+            .args(&["-c", config_file.path().to_str().unwrap()])
+            .env("RUST_BACKTRACE", "1")
+            .spawn()
+            .unwrap();
+
+        Self::wait_for_liveness(&addr);
+
+        Self { node, addr }
+    }
+
+    fn wait_for_liveness(addr: &SocketAddr) {
+        let interval = Duration::from_millis(100);
+        for _ in 0..100 {
+            sleep(interval);
+            if TcpStream::connect_timeout(&addr, interval).is_ok() {
+                return;
+            }
+        }
+        panic!("failed to wait for node liveness");
+    }
+
+    pub fn connect_to_node(&self) -> io::Result<TcpStream> {
+        let conn = TcpStream::connect(&self.addr)?;
+        conn.set_read_timeout(Some(DEFAULT_READ_TIMEOUT)).unwrap();
+        Ok(conn)
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+pub fn send_message(conn: &mut TcpStream, message: PeerMessage) -> io::Result<()> {
+    conn.write_all(serde_json::to_string(&message).unwrap().as_bytes())?;
+    conn.write_all(b"\0")
+}
+
+pub fn recv_message(conn: &mut TcpStream) -> Result<PeerMessage> {
+    fn is_interrupted(res: &io::Result<u8>) -> bool {
+        if let Err(err) = res {
+            if err.kind() == ErrorKind::Interrupted {
+                return true;
+            }
+        }
+        false
+    }
+
+    // NB: extremely inefficient, but simple.
+    let mut buffer = vec![];
+    for mb_byte in conn.bytes() {
+        if is_interrupted(&mb_byte) {
+            continue;
+        }
+
+        let byte = mb_byte.context("failed to read stream")?;
+        if byte != 0 {
+            buffer.push(byte);
+            continue;
+        }
+
+        let data_str = std::str::from_utf8(&buffer).context("message is not a valid utf-8")?;
+        let msg: PeerMessage =
+            serde_json::from_str(data_str).context("failed to deserialize message")?;
+        return Ok(msg);
+    }
+    bail!("stream ended unexpectedly");
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+// Make sure that all the previous messages have been processed by gossip service.
+// To do that, we send a random block, request it back and wait for response.
+pub fn sync(conn: &mut TcpStream) -> Result<()> {
+    let block = random_block(10);
+
+    send_message(conn, PeerMessage::Block(Box::new(block.clone())))?;
+    send_message(
+        conn,
+        PeerMessage::Request {
+            block_hash: block.compute_hash(),
+        },
+    )?;
+
+    wait_for_message(conn, 3, |msg| match msg {
+        PeerMessage::Block(recv_block) => **recv_block == block,
+        _ => false,
+    })?;
+
+    Ok(())
+}
+
+pub fn wait_for_message<F: FnMut(&PeerMessage) -> bool>(
+    conn: &mut TcpStream,
+    wait_time_secs: u64,
+    mut pred: F,
+) -> Result<PeerMessage> {
+    conn.set_read_timeout(Some(Duration::from_secs(wait_time_secs)))
+        .unwrap();
+
+    let start_ts = Instant::now();
+    loop {
+        let mb_msg = recv_message(conn);
+        if start_ts.elapsed().as_secs() >= wait_time_secs {
+            bail!("expected message is not received");
+        }
+
+        let msg = mb_msg.context("failed to receive message")?;
+        if pred(&msg) {
+            return Ok(msg);
+        }
+    }
+}
+
+// Make sure that gossip service does not have a message in queue
+// that matches given predicate.
+pub fn ensure_absence<F: FnMut(&PeerMessage) -> bool>(
+    conn: &mut TcpStream,
+    mut pred: F,
+) -> Result<()> {
+    let block = random_block(15);
+
+    send_message(conn, PeerMessage::Block(Box::new(block.clone())))?;
+    send_message(
+        conn,
+        PeerMessage::Request {
+            block_hash: block.compute_hash(),
+        },
+    )?;
+
+    loop {
+        let msg = recv_message(conn).context("failed to receive message")?;
+        if pred(&msg) {
+            bail!("received a message that matches predicate");
+        }
+        if let PeerMessage::Block(recv_block) = msg {
+            if *recv_block == block {
+                return Ok(());
+            }
+        }
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+pub fn random_hash() -> BlockHash {
+    let mut rng = thread_rng();
+    let mut hash = [0u8; HASH_LEN];
+    for i in 0..hash.len() {
+        hash[i] = rng.gen();
+    }
+    hash
+}
+
+pub fn random_block(index: u64) -> Block {
+    let mut block = Block::genesis();
+    block.prev_hash = random_hash();
+    block.index = index;
+    block.timestamp = block
+        .timestamp
+        .checked_add_signed(chrono::Duration::minutes(10 * index as i64))
+        .unwrap();
+    block
+}
+
+pub fn generate_private_key() -> RSAPrivateKey {
+    generate_multi_prime_key(&mut thread_rng(), 32, 1024).unwrap()
+}
+
+pub fn generate_public_key() -> RSAPublicKey {
+    generate_private_key().into()
+}

@@ -21,6 +21,7 @@ members = [
     "threadpool",
     "pargrep",
     "tcp_proxy",
+    "babencoin",
 
     # Tools
     "tools/submit",
