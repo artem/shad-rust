@@ -1,10 +1,11 @@
+#[macro_use]
 mod helpers;
 
 use core::time;
 
 use helpers::{
     ensure_absence, generate_private_key, generate_public_key, random_block, send_message, sync,
-    wait_for_message, Env,
+    wait_for_message,
 };
 
 use babencoin::{
@@ -16,10 +17,10 @@ use babencoin::{
 
 #[test]
 fn test_block_request() {
-    let env = Env::new();
+    let env = test_env!("test_block_request");
     let mut conn = env.connect_to_node().unwrap();
 
-    wait_for_message(&mut conn, 3, |msg| match msg {
+    wait_for_message(&mut conn, 10, |msg| match msg {
         PeerMessage::Block(block) => **block == Block::genesis(),
         _ => false,
     })
@@ -33,7 +34,7 @@ fn test_block_request() {
     )
     .unwrap();
 
-    wait_for_message(&mut conn, 3, |msg| match msg {
+    wait_for_message(&mut conn, 10, |msg| match msg {
         PeerMessage::Block(block) => **block == Block::genesis(),
         _ => false,
     })
@@ -42,7 +43,7 @@ fn test_block_request() {
     let block = random_block(25);
     send_message(&mut conn, PeerMessage::Block(Box::new(block.clone()))).unwrap();
 
-    wait_for_message(&mut conn, 3, |msg| match msg {
+    wait_for_message(&mut conn, 10, |msg| match msg {
         PeerMessage::Request { block_hash } => block_hash == &block.attrs.prev_hash,
         _ => false,
     })
@@ -51,7 +52,7 @@ fn test_block_request() {
     let hash = block.compute_hash();
     send_message(&mut conn, PeerMessage::Request { block_hash: hash }).unwrap();
 
-    wait_for_message(&mut conn, 3, |msg| match msg {
+    wait_for_message(&mut conn, 10, |msg| match msg {
         PeerMessage::Block(recv_block) => **recv_block == block,
         _ => false,
     })
@@ -60,7 +61,7 @@ fn test_block_request() {
 
 #[test]
 fn test_tx_send() {
-    let env = Env::new();
+    let env = test_env!("test_tx_send");
 
     let key = generate_private_key();
     let tx =
@@ -76,7 +77,7 @@ fn test_tx_send() {
     drop(conn_one);
 
     let mut conn_two = env.connect_to_node().unwrap();
-    wait_for_message(&mut conn_two, 3, |msg| match msg {
+    wait_for_message(&mut conn_two, 10, |msg| match msg {
         PeerMessage::Transaction(recv_tx) => &recv_tx as &Transaction == &tx as &Transaction,
         _ => false,
     })
@@ -85,7 +86,7 @@ fn test_tx_send() {
 
 #[test]
 fn test_tx_discard() {
-    let env = Env::new();
+    let env = test_env!("test_tx_discard");
 
     let key = generate_private_key();
     let tx = VerifiedTransaction::sign(&key, generate_public_key().into(), 100, 100, "Test".into())
@@ -110,7 +111,7 @@ fn test_tx_discard() {
 
 #[test]
 fn test_head_advance() {
-    let env = Env::new();
+    let env = test_env!("test_head_advance");
 
     let mut block = random_block(1);
     block.attrs.prev_hash = Block::genesis().compute_hash();
@@ -125,14 +126,14 @@ fn test_head_advance() {
     )
     .unwrap();
 
-    wait_for_message(&mut conn_one, 3, |msg| match msg {
+    wait_for_message(&mut conn_one, 10, |msg| match msg {
         PeerMessage::Block(recv_block) => **recv_block == block,
         _ => false,
     })
     .unwrap();
 
     let mut conn_two = env.connect_to_node().unwrap();
-    wait_for_message(&mut conn_two, 3, |msg| match msg {
+    wait_for_message(&mut conn_two, 10, |msg| match msg {
         PeerMessage::Block(recv_block) => **recv_block == block,
         _ => false,
     })
@@ -141,7 +142,7 @@ fn test_head_advance() {
 
 #[test]
 fn test_head_switch() {
-    let env = Env::new();
+    let env = test_env!("test_head_switch");
 
     let tx_one = VerifiedTransaction::sign(
         &generate_private_key(),
@@ -193,12 +194,12 @@ fn test_head_switch() {
     sync(&mut conn_one).unwrap();
 
     let mut conn_two = env.connect_to_node().unwrap();
-    wait_for_message(&mut conn_two, 3, |msg| match msg {
+    wait_for_message(&mut conn_two, 10, |msg| match msg {
         PeerMessage::Block(block) => **block == block_one,
         _ => false,
     })
     .unwrap();
-    wait_for_message(&mut conn_two, 3, |msg| match msg {
+    wait_for_message(&mut conn_two, 10, |msg| match msg {
         PeerMessage::Transaction(tx) => &tx as &Transaction == &tx_two as &Transaction,
         _ => false,
     })
@@ -216,12 +217,12 @@ fn test_head_switch() {
     sync(&mut conn_one).unwrap();
 
     let mut conn_three = env.connect_to_node().unwrap();
-    wait_for_message(&mut conn_three, 3, |msg| match msg {
+    wait_for_message(&mut conn_three, 10, |msg| match msg {
         PeerMessage::Block(block) => **block == block_three,
         _ => false,
     })
     .unwrap();
-    wait_for_message(&mut conn_three, 3, |msg| match msg {
+    wait_for_message(&mut conn_three, 10, |msg| match msg {
         PeerMessage::Transaction(tx) => &tx as &Transaction == &tx_one as &Transaction,
         _ => false,
     })
@@ -230,7 +231,7 @@ fn test_head_switch() {
 
 #[test]
 fn test_no_bad_block_memoization() {
-    let env = Env::new();
+    let env = test_env!("test_no_bad_block_memoization");
     let mut conn = env.connect_to_node().unwrap();
 
     let ok_block = random_block(25);
@@ -242,7 +243,7 @@ fn test_no_bad_block_memoization() {
 
     send_message(&mut conn, PeerMessage::Block(Box::new(bad_block))).unwrap();
 
-    wait_for_message(&mut conn, 3, |msg| match msg {
+    wait_for_message(&mut conn, 10, |msg| match msg {
         PeerMessage::Request { block_hash } => block_hash == &ok_block_hash,
         _ => false,
     })
@@ -272,7 +273,7 @@ fn test_eager_requests() {
     let mut config = node::Config::default();
     config.gossip_service.eager_requests_interval = time::Duration::from_millis(200);
 
-    let env = Env::with_config(config);
+    let env = test_env!("test_eager_requests", config);
 
     let mut block_one = random_block(1);
     block_one.attrs.prev_hash = Block::genesis().compute_hash();
@@ -290,7 +291,7 @@ fn test_eager_requests() {
 
     let mut conn_two = env.connect_to_node().unwrap();
     for _ in 0..5 {
-        wait_for_message(&mut conn_two, 3, |msg| match msg {
+        wait_for_message(&mut conn_two, 10, |msg| match msg {
             PeerMessage::Request { block_hash } => block_hash == &block_two.attrs.prev_hash,
             _ => false,
         })

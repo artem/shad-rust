@@ -6,6 +6,8 @@ base: lint test allowlist
 
 base_no_miri: lint test allowlist
 
+base_no_miri_no_parallel: lint test_no_parallel allowlist
+
 base_no_miri_no_clippy: lint_no_clippy test allowlist
 
 lint: lint_no_clippy
@@ -34,6 +36,9 @@ lint_no_clippy:
 test:
 	cargo test
 	cargo test --release
+
+test_no_parallel:
+	cargo test -j 1
 
 allowlist:
 	@if [ ! -f ./.allowlist ]; then \

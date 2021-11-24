@@ -8,72 +8,108 @@ use babencoin::{
 use anyhow::{bail, Context, Result};
 use rand::{thread_rng, Rng};
 use rsa::{algorithms::generate_multi_prime_key, RSAPrivateKey, RSAPublicKey};
-use tempfile::NamedTempFile;
 
 use std::{
+    fs,
     io::{self, ErrorKind, Read, Write},
     net::{SocketAddr, TcpStream},
+    path::{Path, PathBuf},
     process::{Child, Command},
-    thread::sleep,
+    thread,
     time::{Duration, Instant},
 };
 
 ////////////////////////////////////////////////////////////////////////////////
 
 const NODE_BINARY_PATH: &str = "../target/debug/babencoin";
+const TEST_ARTIFACTS_PATH: &str = "./test_artifacts";
 const DEFAULT_READ_TIMEOUT: Duration = Duration::from_secs(3);
 
 ////////////////////////////////////////////////////////////////////////////////
 
-pub struct Env {
-    node: Child,
-    addr: SocketAddr,
+macro_rules! test_env {
+    ($name:literal) => {
+        $crate::helpers::Env::new($name, ::babencoin::node::Config::default())
+    };
+    ($name:literal, $config:ident) => {
+        $crate::helpers::Env::new($name, $config)
+    };
 }
 
-impl Default for Env {
-    fn default() -> Self {
-        Self::new()
-    }
+pub struct Env {
+    name: &'static str,
+    node: Child,
+    addr: SocketAddr,
+    log_file_path: PathBuf,
 }
 
 impl Drop for Env {
     fn drop(&mut self) {
         self.node.kill().ok();
+        if thread::panicking() {
+            eprintln!("=== BEGIN LOGS OF TEST '{}' ===", self.name);
+            eprintln!("{}", fs::read_to_string(&self.log_file_path).unwrap());
+            eprintln!("=== END LOGS OF TEST '{}' ===", self.name);
+        }
     }
 }
 
 impl Env {
-    pub fn new() -> Self {
-        Self::with_config(node::Config::default())
-    }
-
-    pub fn with_config(mut config: node::Config) -> Self {
+    pub fn new(name: &'static str, mut config: node::Config) -> Self {
         let port = thread_rng().gen_range(49152..65536);
         let addr: SocketAddr = format!("127.0.0.1:{}", port).parse().unwrap();
         config.peer_service.listen_address = Some(addr.to_string());
 
-        let mut config_file = NamedTempFile::new().unwrap();
+        let dir_suffix = if cfg!(debug_assertions) {
+            "debug"
+        } else {
+            "release"
+        };
+        let dir = Path::new(TEST_ARTIFACTS_PATH).join(format!("{}_{}", name, dir_suffix));
+        fs::create_dir_all(&dir).unwrap();
+
+        let config_path = dir.join("config.yaml");
+        let mut config_file = fs::OpenOptions::new()
+            .read(true)
+            .write(true)
+            .create(true)
+            .open(&config_path)
+            .unwrap();
         config_file
             .write_all(serde_json::to_string_pretty(&config).unwrap().as_bytes())
             .unwrap();
         config_file.flush().unwrap();
 
+        let log_file_path = dir.join("stderr").to_owned();
+        let log_file = fs::OpenOptions::new()
+            .write(true)
+            .create(true)
+            .open(&log_file_path)
+            .unwrap();
+
         let node = Command::new(NODE_BINARY_PATH)
-            .args(&["-c", config_file.path().to_str().unwrap()])
+            .args(&["-c", config_path.to_str().unwrap()])
             .env("RUST_BACKTRACE", "1")
+            .stderr(log_file)
             .spawn()
             .unwrap();
 
         Self::wait_for_liveness(&addr);
 
-        Self { node, addr }
+        Self {
+            name,
+            node,
+            addr,
+            log_file_path,
+        }
     }
 
     fn wait_for_liveness(addr: &SocketAddr) {
         let interval = Duration::from_millis(100);
         for _ in 0..100 {
-            sleep(interval);
-            if TcpStream::connect_timeout(&addr, interval).is_ok() {
+            thread::sleep(interval);
+            if let Ok(mut conn) = TcpStream::connect_timeout(&addr, interval) {
+                sync(&mut conn).unwrap();
                 return;
             }
         }

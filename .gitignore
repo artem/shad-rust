@@ -1,5 +1,6 @@
 **/*.code-workspace
 **/.vscode
 **/target
+**/test_artifacts
 **/vendor
 Cargo.lock

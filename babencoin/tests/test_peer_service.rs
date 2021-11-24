@@ -1,6 +1,7 @@
+#[macro_use]
 mod helpers;
 
-use helpers::{send_message, Env};
+use helpers::send_message;
 
 use babencoin::{
     data::{Block, PeerMessage, Transaction, VerifiedBlock, VerifiedTransaction, MAX_REWARD},
@@ -19,7 +20,7 @@ use std::{
 
 #[test]
 fn test_simple() {
-    let env = Env::new();
+    let env = test_env!("test_simple");
     let mut conn = env.connect_to_node().unwrap();
 
     send_message(&mut conn, PeerMessage::Block(Box::new(Block::genesis()))).unwrap();
@@ -76,7 +77,7 @@ fn test_invalid_messages() {
         ("invalid_tx", serde_json::to_string(&invalid_tx).unwrap()),
     ];
 
-    let env = Env::new();
+    let env = test_env!("test_invalid_messages");
     for (name, data) in cases {
         let mut conn = env.connect_to_node().unwrap();
 
@@ -92,7 +93,7 @@ fn test_invalid_messages() {
 
 #[test]
 fn test_huge_message() {
-    let env = Env::new();
+    let env = test_env!("test_huge_message");
     let mut conn = env.connect_to_node().unwrap();
 
     for i in 0..10 {
@@ -112,7 +113,7 @@ fn test_dial() {
 
     let mut config = node::Config::default();
     config.peer_service.dial_addresses = vec![listener.local_addr().unwrap().to_string()];
-    let _env = Env::with_config(config);
+    let _env = test_env!("test_dial", config);
 
     for _ in 0..3 {
         listener.accept().unwrap();
