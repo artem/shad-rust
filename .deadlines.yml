@@ -1,3 +1,10 @@
+- group:    Async
+  start:    01-12-2021 08:00
+  deadline: 20-12-2021 19:30
+  tasks:
+    - task: crawler
+      score: 200
+
 - group:    Project 3
   start:    17-11-2021 19:30
   deadline: 15-12-2021 19:30

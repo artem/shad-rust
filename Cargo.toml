@@ -22,6 +22,7 @@ members = [
     "pargrep",
     "tcp_proxy",
     "babencoin",
+    "crawler",
 
     # Tools
     "tools/submit",
