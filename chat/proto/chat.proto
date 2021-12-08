@@ -1,0 +1,174 @@
+syntax = "proto3";
+
+package chat_proto;
+
+service Chat {
+	rpc CreateJoinCodes(CreateJoinCodesRequest) returns (CreateJoinCodesResponse) {}
+	rpc ListJoinCodes(ListJoinCodesRequest) returns (ListJoinCodesResponse) {}
+	rpc Join(JoinRequest) returns (JoinResponse) {}
+	rpc Login(LoginRequest) returns (LoginResponse) {}
+	rpc ListUsers(ListUsersRequest) returns (ListUsersResponse) {}
+	rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
+	rpc BanUser(BanUserRequest) returns (BanUserResponse) {}
+	rpc UnbanUser(UnbanUserRequest) returns (UnbanUserResponse) {}
+	rpc CreateChatRoom(CreateChatRoomRequest) returns (CreateChatRoomResponse) {}
+	rpc ListChatRooms(ListChatRoomsRequest) returns (ListChatRoomsResponse) {}
+	rpc GetChatRoom(GetChatRoomRequest) returns (GetChatRoomResponse) {}
+	rpc SendMessage(SendMessageRequest) returns (SendMessageResponse) {}
+	rpc StreamMessages(StreamMessagesRequest) returns (stream StreamMessagesResponseEntry) {}
+}
+
+// CreateJoinCodes
+
+message CreateJoinCodesRequest {
+	string token = 1;
+	uint32 num_codes = 2;
+}
+
+message CreateJoinCodesResponse {
+	repeated string join_codes = 1;
+}
+
+// ListJoinCodes
+
+message ListJoinCodesRequest {
+	string token = 1;
+}
+
+message ListJoinCodesResponse {
+	repeated string join_codes = 1;
+}
+
+// Join
+
+message JoinRequest {
+	string join_code = 1;
+	string user_name = 2;
+	string password = 3;
+}
+
+message JoinResponse {
+	string token = 1;
+	uint32 user_id = 2;
+}
+
+// Login
+
+message LoginRequest {
+	string user_name = 1;
+	string password = 2;
+}
+
+message LoginResponse {
+	string token = 1;
+	uint32 user_id = 2;
+}
+
+// ListUsers
+
+message ListUsersRequest {
+	string token = 1;
+}
+
+message ListUsersResponse {
+	repeated UserPublic users = 1;
+}
+
+// GetUser
+
+message GetUserRequest {
+	string token = 1;
+	uint32 user_id = 2;
+}
+
+message GetUserResponse {
+	UserPublic user = 1;
+}
+
+// BanUser
+
+message BanUserRequest {
+	string token = 1;
+	uint32 user_id = 2;
+}
+
+message BanUserResponse {
+	bool pending = 1;
+}
+
+// UnbanUser
+
+message UnbanUserRequest {
+	string token = 1;
+	uint32 user_id = 2;
+}
+
+message UnbanUserResponse {}
+
+// CreateChatRoom
+
+message CreateChatRoomRequest {
+	string token = 1;
+	string name = 2;
+}
+
+message CreateChatRoomResponse {
+	uint32 chat_id = 1;
+}
+
+// ListChatRooms
+
+message ListChatRoomsRequest {
+	string token = 1;
+}
+
+message ListChatRoomsResponse {
+	repeated ListChatRoomsEntry chat_rooms = 1;
+}
+
+message ListChatRoomsEntry {
+	string name = 1;
+	uint32 chat_id = 2;
+}
+
+// GetChatRoom
+
+message GetChatRoomRequest {
+	string token = 1;
+	uint32 chat_id = 2;
+}
+
+message GetChatRoomResponse {
+	string name = 1;
+}
+
+// SendMessage
+
+message SendMessageRequest {
+	string token = 1;
+	uint32 chat_id = 2;
+	string content = 3;
+}
+
+message SendMessageResponse {}
+
+// StreamMessages
+
+message StreamMessagesRequest {
+	string token = 1;
+	uint32 chat_id = 2;
+}
+
+message StreamMessagesResponseEntry {
+	uint32 user_id = 1;
+	string user_name = 2;
+	string content = 3;
+}
+
+// Common types
+
+message UserPublic {
+	uint32 id = 1;
+	string name = 2;
+	bool banned = 3;
+}

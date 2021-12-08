@@ -23,6 +23,7 @@ members = [
     "tcp_proxy",
     "babencoin",
     "crawler",
+    "chat",
 
     # Tools
     "tools/submit",

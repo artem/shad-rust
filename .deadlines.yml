@@ -1,3 +1,10 @@
+- group:    Bonus
+  start:    01-12-2021 08:00
+  deadline: 31-01-2022 23:59
+  tasks:
+    - task: chat
+      score: 400
+
 - group:    Async
   start:    01-12-2021 08:00
   deadline: 20-12-2021 19:30
