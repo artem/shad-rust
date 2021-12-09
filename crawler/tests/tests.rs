@@ -187,10 +187,10 @@ async fn test_concurrently_same_link() {
 
     assert_eq!(pages.len(), 6);
     assert_eq!(pages[0].url, format!("http://localhost:{}/", server.port));
-    assert_eq!(
-        pages[5].url,
-        format!("http://localhost:{}/foo", server.port)
-    );
+    assert!(pages
+        .iter()
+        .find(|page| page.url == format!("http://localhost:{}/foo", server.port))
+        .is_some());
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 4)]
