@@ -4,11 +4,36 @@ default: all
 
 base: lint test allowlist
 
+base_miri_unsafe: lint_unsafe test test_miri allowlist
+
+base_miri_unsafe_no_std: lint_unsafe_no_std test test_miri allowlist
+
 base_no_miri: lint test allowlist
 
 base_no_miri_no_parallel: lint test_no_parallel allowlist
 
 base_no_miri_no_clippy: lint_no_clippy test allowlist
+
+lint_unsafe:
+	cargo clippy
+	@if [ "$$(cargo clippy 2>&1 | grep -v Finished | grep -v Checking)" ]; \
+		then exit 1; \
+	fi
+
+	cargo fmt -- --check
+
+lint_unsafe_no_std:
+	cargo clippy
+	@if [ "$$(cargo clippy 2>&1 | grep -v Finished | grep -v Checking)" ]; \
+		then exit 1; \
+	fi
+
+	cargo fmt -- --check
+
+	if [ "$$(head -n 1 ./src/lib.rs)" != "#![no_std]" ]; then \
+		echo "'#![no_std]' must be at the top of lib.rs"; \
+		exit 1; \
+	fi \
 
 lint: lint_no_clippy
 	cargo clippy
@@ -36,6 +61,9 @@ lint_no_clippy:
 test:
 	cargo test
 	cargo test --release
+
+test_miri:
+	cargo +nightly miri test
 
 test_no_parallel:
 	cargo test -j 1
