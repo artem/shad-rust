@@ -24,6 +24,8 @@ members = [
     "babencoin",
     "crawler",
     "chat",
+    "arrayvec",
+    "snapshot",
 
     # Tools
     "tools/submit",

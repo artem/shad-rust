@@ -4,6 +4,10 @@
   tasks:
     - task: chat
       score: 400
+    - task: arrayvec
+      score: 100
+    - task: snapshot
+      score: 200
 
 - group:    Async
   start:    01-12-2021 08:00
