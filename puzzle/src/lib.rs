@@ -1,5 +1,6 @@
 #![forbid(unsafe_code)]
 
+use std::collections::hash_map::Entry;
 use std::collections::{HashMap, HashSet, VecDeque};
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -49,7 +50,7 @@ impl Tile {
 ////////////////////////////////////////////////////////////////////////////////
 
 /// Represents a 3x3 board of tiles.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
 pub struct Board {
     tiles: [[Tile; 3]; 3],
 }
@@ -124,7 +125,7 @@ impl Board {
     /// 678
     /// '''
     pub fn to_string(&self) -> String {
-        let mut res = String::new();
+        let mut res = String::with_capacity(12);
         for cur in self.tiles {
             for tile in cur {
                 let ch = if tile.is_empty() {
@@ -141,6 +142,25 @@ impl Board {
     }
 
     // You might want to add some more methods here.
+
+    pub fn find_empty(&self) -> (usize, usize) {
+        for (i, row) in self.tiles.iter().enumerate() {
+            for (j, tile) in row.iter().enumerate() {
+                if tile.is_empty() {
+                    return (i, j);
+                }
+            }
+        }
+        unreachable!("The loop should always return");
+    }
+
+    pub fn is_solved(&self) -> bool {
+        let mut tiles = [[Tile::empty(); 3]; 3];
+        for i in 0..8 {
+            tiles[i / 3][i % 3] = Tile((i + 1) as u8);
+        }
+        return self.tiles == tiles;
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -159,6 +179,62 @@ impl Board {
 /// If the board is unsolvable, returns `None`. If the board is already solved,
 /// returns an empty vector.
 pub fn solve(start: Board) -> Option<Vec<Board>> {
-    // TODO: your code here.
-    unimplemented!()
+    if start.is_solved() {
+        return Some(Vec::new());
+    }
+
+    let mut que = VecDeque::new();
+    let mut trace: HashMap<Board, Board> = HashMap::new();
+    que.push_back(start.clone());
+    trace.insert(start.clone(), start.clone());
+
+    while let Some(board) = que.pop_front() {
+        let (x, y) = board.find_empty();
+
+        for h in [usize::MAX, 0, 1] {
+            for v in [usize::MAX, 0, 1] {
+                if (h == 0) == (v == 0) {
+                    continue;
+                }
+
+                let new_x = x.wrapping_add(h);
+                let new_y = y.wrapping_add(v);
+                if new_x >= 3 || new_y >= 3 {
+                    continue;
+                }
+                let mut brd_copy = board.clone();
+                brd_copy.swap(x, y, new_x, new_y);
+
+                if brd_copy.is_solved() {
+                    return Some(build_solution(&start, &trace, &board, brd_copy.clone()));
+                }
+
+                if let Entry::Vacant(ent) = trace.entry(brd_copy.clone()) {
+                    ent.insert(board.clone());
+                    que.push_back(brd_copy);
+                };
+            }
+        }
+    }
+
+    return None;
+}
+
+fn build_solution(
+    start: &Board,
+    trace: &HashMap<Board, Board>,
+    board: &Board,
+    brd_copy: Board,
+) -> Vec<Board> {
+    let mut ans = Vec::new();
+    ans.push(brd_copy);
+    let mut cur = board;
+    loop {
+        if *cur == *start {
+            ans.reverse();
+            return ans;
+        };
+        ans.push(cur.clone());
+        cur = trace.get(cur).unwrap();
+    }
 }
