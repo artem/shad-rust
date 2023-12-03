@@ -1,12 +1,24 @@
 #![forbid(unsafe_code)]
 
+////////////////////////////////////////////////////////////////////////////////
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum Value {
     Number(f64),
     Symbol(String),
 }
 
-#[derive(Default)]
+impl Display for Value {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Number(num) => write!(f, "{}", num),
+            Self::Symbol(sym) => write!(f, "'{}", sym),
+        }
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 pub struct Interpreter {
     // TODO: your code here.
 }

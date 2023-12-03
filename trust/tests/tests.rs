@@ -42,8 +42,8 @@ fn test_game<'a>(mut game: Game, expected_outcomes: impl IntoIterator<Item = &'a
 #[test]
 fn test_cooperators() {
     let game = Game::new(
-        Box::new(CooperatingAgent::default()),
-        Box::new(CooperatingAgent::default()),
+        Box::new(CooperatingAgent::new()),
+        Box::new(CooperatingAgent::new()),
     );
     test_game(game, &[RoundOutcome::BothCooperated; 12]);
 }
@@ -51,35 +51,29 @@ fn test_cooperators() {
 #[test]
 fn test_cheaters() {
     let game = Game::new(
-        Box::new(CheatingAgent::default()),
-        Box::new(CheatingAgent::default()),
+        Box::new(CheatingAgent::new()),
+        Box::new(CheatingAgent::new()),
     );
     test_game(game, &[RoundOutcome::BothCheated; 8]);
 }
 
 #[test]
 fn test_grudgers() {
-    let game = Game::new(
-        Box::new(GrudgerAgent::default()),
-        Box::new(GrudgerAgent::default()),
-    );
+    let game = Game::new(Box::new(GrudgerAgent::new()), Box::new(GrudgerAgent::new()));
     test_game(game, &[RoundOutcome::BothCooperated; 15]);
 }
 
 #[test]
 fn test_copycats() {
-    let game = Game::new(
-        Box::new(CopycatAgent::default()),
-        Box::new(CopycatAgent::default()),
-    );
+    let game = Game::new(Box::new(CopycatAgent::new()), Box::new(CopycatAgent::new()));
     test_game(game, &[RoundOutcome::BothCooperated; 14]);
 }
 
 #[test]
 fn test_detectives() {
     let game = Game::new(
-        Box::new(DetectiveAgent::default()),
-        Box::new(DetectiveAgent::default()),
+        Box::new(DetectiveAgent::new()),
+        Box::new(DetectiveAgent::new()),
     );
     test_game(
         game,
@@ -93,8 +87,8 @@ fn test_detectives() {
 #[test]
 fn test_cooperator_cheater() {
     let game = Game::new(
-        Box::new(CooperatingAgent::default()),
-        Box::new(CheatingAgent::default()),
+        Box::new(CooperatingAgent::new()),
+        Box::new(CheatingAgent::new()),
     );
     test_game(game, &[RoundOutcome::RightCheated; 18]);
 }
@@ -102,8 +96,8 @@ fn test_cooperator_cheater() {
 #[test]
 fn test_cooperator_grudger() {
     let game = Game::new(
-        Box::new(CooperatingAgent::default()),
-        Box::new(GrudgerAgent::default()),
+        Box::new(CooperatingAgent::new()),
+        Box::new(GrudgerAgent::new()),
     );
     test_game(game, &[RoundOutcome::BothCooperated; 16]);
 }
@@ -111,8 +105,8 @@ fn test_cooperator_grudger() {
 #[test]
 fn test_cooperator_copycat() {
     let game = Game::new(
-        Box::new(CooperatingAgent::default()),
-        Box::new(CopycatAgent::default()),
+        Box::new(CooperatingAgent::new()),
+        Box::new(CopycatAgent::new()),
     );
     test_game(game, &[RoundOutcome::BothCooperated; 11]);
 }
@@ -120,8 +114,8 @@ fn test_cooperator_copycat() {
 #[test]
 fn test_cooperator_detective() {
     let game = Game::new(
-        Box::new(CooperatingAgent::default()),
-        Box::new(DetectiveAgent::default()),
+        Box::new(CooperatingAgent::new()),
+        Box::new(DetectiveAgent::new()),
     );
     test_game(
         game,
@@ -136,8 +130,8 @@ fn test_cooperator_detective() {
 #[test]
 fn test_cheater_grudger() {
     let game = Game::new(
-        Box::new(CheatingAgent::default()),
-        Box::new(GrudgerAgent::default()),
+        Box::new(CheatingAgent::new()),
+        Box::new(GrudgerAgent::new()),
     );
     test_game(
         game,
@@ -150,8 +144,8 @@ fn test_cheater_grudger() {
 #[test]
 fn test_cheater_copycat() {
     let game = Game::new(
-        Box::new(CheatingAgent::default()),
-        Box::new(CopycatAgent::default()),
+        Box::new(CheatingAgent::new()),
+        Box::new(CopycatAgent::new()),
     );
     test_game(
         game,
@@ -164,8 +158,8 @@ fn test_cheater_copycat() {
 #[test]
 fn test_cheater_detective() {
     let game = Game::new(
-        Box::new(CheatingAgent::default()),
-        Box::new(DetectiveAgent::default()),
+        Box::new(CheatingAgent::new()),
+        Box::new(DetectiveAgent::new()),
     );
     test_game(
         game,
@@ -179,18 +173,15 @@ fn test_cheater_detective() {
 
 #[test]
 fn test_grudger_copycat() {
-    let game = Game::new(
-        Box::new(GrudgerAgent::default()),
-        Box::new(CopycatAgent::default()),
-    );
+    let game = Game::new(Box::new(GrudgerAgent::new()), Box::new(CopycatAgent::new()));
     test_game(game, &[RoundOutcome::BothCooperated; 17]);
 }
 
 #[test]
 fn test_grudger_detective() {
     let game = Game::new(
-        Box::new(GrudgerAgent::default()),
-        Box::new(DetectiveAgent::default()),
+        Box::new(GrudgerAgent::new()),
+        Box::new(DetectiveAgent::new()),
     );
     test_game(
         game,
@@ -205,8 +196,8 @@ fn test_grudger_detective() {
 #[test]
 fn test_copycat_detective() {
     let game = Game::new(
-        Box::new(CopycatAgent::default()),
-        Box::new(DetectiveAgent::default()),
+        Box::new(CopycatAgent::new()),
+        Box::new(DetectiveAgent::new()),
     );
     test_game(
         game,

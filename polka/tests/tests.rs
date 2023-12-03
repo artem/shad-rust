@@ -22,7 +22,7 @@ fn test_simple() {
 
 #[test]
 fn test_variables() {
-    let mut inter = Interpreter::default();
+    let mut inter = Interpreter::new();
     test(&mut inter, "4 5 * 'x set", &[]);
     test(&mut inter, "4 $x +", &[Value::Number(24.)]);
     test(
@@ -35,7 +35,7 @@ fn test_variables() {
 
 #[test]
 fn test_symbol_variable() {
-    let mut inter = Interpreter::default();
+    let mut inter = Interpreter::new();
     test(&mut inter, "'y 'x set", &[]);
     test(&mut inter, "$x", &[Value::Symbol("y".to_string())]);
     test(&mut inter, "20 $x set", &[Value::Symbol("y".to_string())]);
@@ -48,41 +48,41 @@ fn test_symbol_variable() {
 
 #[test]
 fn test_whitespace() {
-    let mut inter = Interpreter::default();
+    let mut inter = Interpreter::new();
     test(&mut inter, "3\n5\t10\r+   \n\r*", &[Value::Number(45.)]);
 }
 
 #[test]
 #[should_panic]
 fn test_set_type_error() {
-    let mut inter = Interpreter::default();
+    let mut inter = Interpreter::new();
     inter.eval("5 10 set");
 }
 
 #[test]
 #[should_panic]
 fn test_arithmetic_error() {
-    let mut inter = Interpreter::default();
+    let mut inter = Interpreter::new();
     inter.eval("5 'foo +");
 }
 
 #[test]
 #[should_panic]
 fn test_not_a_number() {
-    let mut inter = Interpreter::default();
+    let mut inter = Interpreter::new();
     inter.eval("hello");
 }
 
 #[test]
 #[should_panic]
 fn test_name_error() {
-    let mut inter = Interpreter::default();
+    let mut inter = Interpreter::new();
     inter.eval("5 $a +");
 }
 
 #[test]
 #[should_panic]
 fn test_empty_stack() {
-    let mut inter = Interpreter::default();
+    let mut inter = Interpreter::new();
     inter.eval("1 +");
 }

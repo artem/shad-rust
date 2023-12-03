@@ -1,6 +1,6 @@
 #![forbid(unsafe_code)]
 
-use babencoin::node::{run_forever, Config};
+use babencoin::node::{run, Config};
 
 use anyhow::{Context, Result};
 use log::*;
@@ -43,7 +43,7 @@ fn get_verbosity() -> usize {
     }
 }
 
-fn do_main() -> Result<()> {
+async fn do_main() -> Result<()> {
     let opts = Opts::from_args();
 
     stderrlog::new()
@@ -53,11 +53,12 @@ fn do_main() -> Result<()> {
         .expect("failed to initialize logging");
 
     let config = read_config(&opts.config_path)?;
-    run_forever(config)
+    run(config).await
 }
 
-fn main() {
-    if let Err(err) = do_main() {
+#[tokio::main]
+async fn main() {
+    if let Err(err) = do_main().await {
         error!("{:#}", err);
         std::process::exit(1);
     }

@@ -4,7 +4,11 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-clap = "3.0.0-beta.5"
-log = "0.4"
-rand = "0.8"
-simplelog = "0.10"
+clap = { version = "4.0.26", features = ["derive"] }
+log = "0.4.17"
+rand = "0.8.5"
+simplelog = "0.12.0"
+tracing = "0.1.37"
+tracing-error = "0.2.0"
+tracing-subscriber = { version = "0.3.16", features = ["env-filter", "json", "tracing-log"] }
+tracing-tree = "0.2.2"

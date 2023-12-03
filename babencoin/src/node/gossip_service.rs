@@ -6,17 +6,17 @@ use crate::{
 };
 
 use anyhow::{Context, Result};
-use crossbeam::{
-    channel::{self, Receiver, Sender},
-    select,
-};
+use futures::{future::pending, stream, Stream, StreamExt};
 use log::*;
 use rand::{seq::SliceRandom, thread_rng};
 use serde::{Deserialize, Serialize};
+use tokio::{
+    pin, select,
+    sync::mpsc::{Receiver, Sender},
+};
 
 use std::{
     collections::{HashMap, HashSet},
-    thread,
     time::Duration,
 };
 
@@ -29,12 +29,6 @@ pub struct GossipServiceConfig {
 }
 
 pub struct GossipService {
-    config: GossipServiceConfig,
-    event_receiver: Receiver<PeerEvent>,
-    command_sender: Sender<PeerCommand>,
-    block_receiver: Receiver<VerifiedBlock>,
-    mining_info_sender: Sender<MiningInfo>,
-    block_forest: BlockForest,
     // TODO: your code here.
 }
 
@@ -50,7 +44,7 @@ impl GossipService {
         unimplemented!()
     }
 
-    pub fn run(&mut self) {
+    pub async fn run(&mut self) -> Result<()> {
         // TODO: your code here.
         unimplemented!()
     }

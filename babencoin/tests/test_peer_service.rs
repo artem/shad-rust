@@ -116,7 +116,7 @@ fn test_dial() {
     let listener = TcpListener::bind("127.0.0.1:0").unwrap();
 
     let mut config = node::Config::default();
-    config.peer_service.dial_addresses = vec![listener.local_addr().unwrap().to_string()];
+    config.peer_app.service.dial_addresses = vec![listener.local_addr().unwrap().to_string()];
     let _env = test_env!("test_dial", config);
 
     for _ in 0..3 {

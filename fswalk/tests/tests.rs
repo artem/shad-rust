@@ -1,6 +1,9 @@
 use tempdir::TempDir;
 
-use std::{fs, io, path::Path};
+use std::{
+    fs, io,
+    path::{Component, Path},
+};
 
 use fswalk::{Handle, Walker};
 
@@ -107,8 +110,13 @@ fn test_two_handlers() {
                 Handle::File(file_handle) => file_handle.path().parent().unwrap().to_owned(),
                 Handle::Content { file_path, .. } => file_path.to_owned(),
             };
-            if let Some(file_name) = path_to_check.file_name() {
-                assert!(!file_name.to_str().unwrap().starts_with(forbidden_prefix))
+            for comp in path_to_check.components() {
+                match comp {
+                    Component::Normal(path) => {
+                        assert!(!path.to_str().unwrap().starts_with(forbidden_prefix))
+                    }
+                    _ => (),
+                }
             }
 
             let is_file_ok = |path: &Path| {

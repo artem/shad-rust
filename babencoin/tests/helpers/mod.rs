@@ -6,7 +6,9 @@ use babencoin::{
 };
 
 use anyhow::{bail, Context, Result};
-use rand::{thread_rng, Rng};
+use rand::{thread_rng, Rng, SeedableRng};
+use rand_chacha::ChaCha20Rng;
+use rand_seeder::Seeder;
 use rsa::{algorithms::generate_multi_prime_key, RSAPrivateKey, RSAPublicKey};
 
 use std::{
@@ -56,9 +58,12 @@ impl Drop for Env {
 
 impl Env {
     pub fn new(name: &'static str, mut config: node::Config) -> Self {
-        let port = thread_rng().gen_range(49152..65536);
+        let port = Seeder::from(name)
+            .make_rng::<ChaCha20Rng>()
+            .gen_range(49152..65436)
+            + ChaCha20Rng::from_entropy().gen_range(0..100);
         let addr: SocketAddr = format!("127.0.0.1:{}", port).parse().unwrap();
-        config.peer_service.listen_address = Some(addr.to_string());
+        config.peer_app.service.listen_address = Some(addr.to_string());
 
         let dir_suffix = if cfg!(debug_assertions) {
             "debug"
@@ -81,6 +86,7 @@ impl Env {
         config_file.flush().unwrap();
 
         let log_file_path = dir.join("stderr").to_owned();
+        let _ = std::fs::remove_file(&log_file_path);
         let log_file = fs::OpenOptions::new()
             .write(true)
             .create(true)
@@ -94,14 +100,16 @@ impl Env {
             .spawn()
             .unwrap();
 
-        Self::wait_for_liveness(&addr);
-
-        Self {
+        let env = Self {
             name,
             node,
             addr,
             log_file_path,
-        }
+        };
+
+        Self::wait_for_liveness(&addr);
+
+        env
     }
 
     fn wait_for_liveness(addr: &SocketAddr) {

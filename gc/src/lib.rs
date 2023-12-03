@@ -79,7 +79,7 @@ impl Arena {
         unimplemented!()
     }
 
-    fn mark(&self, addr: usize, marked: &mut HashSet<usize>) {
+    fn mark_all(&self, root_addr: usize, marked: &mut HashSet<usize>) {
         // TODO: your code here.
         unimplemented!()
     }

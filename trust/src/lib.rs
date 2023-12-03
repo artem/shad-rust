@@ -37,15 +37,27 @@ impl Game {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-#[derive(Default)]
 pub struct CheatingAgent {}
+
+impl CheatingAgent {
+    pub fn new() -> Self {
+        // TODO: your code here.
+        unimplemented!()
+    }
+}
 
 // TODO: your code here.
 
 ////////////////////////////////////////////////////////////////////////////////
 
-#[derive(Default)]
 pub struct CooperatingAgent {}
+
+impl CooperatingAgent {
+    pub fn new() -> Self {
+        // TODO: your code here.
+        unimplemented!()
+    }
+}
 
 // TODO: your code here.
 
@@ -55,12 +67,26 @@ pub struct GrudgerAgent {
     // TODO: your code here.
 }
 
+impl GrudgerAgent {
+    pub fn new() -> Self {
+        // TODO: your code here.
+        unimplemented!()
+    }
+}
+
 // TODO: your code here.
 
 ////////////////////////////////////////////////////////////////////////////////
 
 pub struct CopycatAgent {
     // TODO: your code here.
+}
+
+impl CopycatAgent {
+    pub fn new() -> Self {
+        // TODO: your code here.
+        unimplemented!()
+    }
 }
 
 // TODO: your code here.

@@ -5,11 +5,11 @@ edition = "2021"
 
 [dependencies]
 orm-derive = { path = "./orm-derive" }
-rusqlite = "0.25"
-thiserror = "1.0"
+rusqlite = "0.28.0"
+thiserror = "1.0.37"
 
 [dev-dependencies]
-tempfile = "3.2"
+tempfile = "3.3.0"
 
 [features]
 test_lifetimes_create = []

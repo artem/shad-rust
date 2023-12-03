@@ -20,8 +20,8 @@ use chrono::Duration;
 #[test]
 fn test_genesis_mining() {
     let mut config = node::Config::default();
-    config.mining_service.thread_count = 1;
-    config.mining_service.public_key = generate_public_key().into();
+    config.mining_app.service.mining_thread_count = 1;
+    config.mining_app.service.public_key = generate_public_key().into();
 
     let env = test_env!("test_genesis_mining", config);
     let mut conn = env.connect_to_node().unwrap();
@@ -69,8 +69,8 @@ fn test_genesis_mining() {
 #[test]
 fn test_no_repeated_parents() {
     let mut config = node::Config::default();
-    config.mining_service.thread_count = 1;
-    config.mining_service.public_key = generate_public_key().into();
+    config.mining_app.service.mining_thread_count = 1;
+    config.mining_app.service.public_key = generate_public_key().into();
 
     let env = test_env!("test_no_repeated_parents", config);
     let mut conn = env.connect_to_node().unwrap();
@@ -113,8 +113,8 @@ fn test_mining_difficulty() {
     }
 
     let mut config = node::Config::default();
-    config.mining_service.thread_count = 1;
-    config.mining_service.public_key = generate_public_key().into();
+    config.mining_app.service.mining_thread_count = 1;
+    config.mining_app.service.public_key = generate_public_key().into();
 
     let env = test_env!("test_minig_difficulty", config);
     let mut conn = env.connect_to_node().unwrap();
@@ -159,9 +159,9 @@ fn test_max_tx_per_block() {
         .collect::<Vec<_>>();
 
     let mut config = node::Config::default();
-    config.mining_service.thread_count = 1;
-    config.mining_service.max_tx_per_block = 2;
-    config.mining_service.public_key = generate_public_key().into();
+    config.mining_app.service.mining_thread_count = 1;
+    config.mining_app.service.max_tx_per_block = 2;
+    config.mining_app.service.public_key = generate_public_key().into();
 
     let env = test_env!("test_max_tx_per_block", config);
     let mut conn = env.connect_to_node().unwrap();

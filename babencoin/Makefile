@@ -1,6 +1,6 @@
 include ../build/MakefileBase
 
-all: build clear_artifacts base_no_miri_no_parallel ok
+all: build clear_artifacts base_no_miri ok
 
 build:
 	cargo build

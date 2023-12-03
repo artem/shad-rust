@@ -5,7 +5,7 @@
 
 Реализуйте методы структуры FlatMap. Заметьте, что методы, осуществляющие поиск по ключу
 (`get`, `remove`, `remove_entry`) должны работать не только с типом ключа, но с любым
-типом, т.ч. `K: Borrow<B>` и `B: Ord + ?Sized`. Подсказка: сигнатуры этих функций
+типом, т.ч. `K: Borrow<B>` и `B: Ord + ?Sized` ([подробнее про Borrow](https://doc.rust-lang.org/std/borrow/trait.Borrow.html)). Подсказка: сигнатуры этих функций
 в точности совпадают с сигнатурами одноимённых функций в `HashMap`.
 
 Чтобы не писать бинарный поиск руками, используйте метод [binary_search_by](https://doc.rust-lang.org/std/primitive.slice.html#method.binary_search_by). Пример использования:

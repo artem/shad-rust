@@ -1,55 +1,64 @@
-use std::sync::{
-    atomic::{AtomicUsize, Ordering},
-    Arc,
-};
-
 use crawler::{Config, Crawler, Page};
 
+use log::debug;
 use rand::{thread_rng, Rng};
+use test_log::test;
+use tokio::{runtime, time::sleep};
+
+use std::{
+    sync::{
+        atomic::{AtomicUsize, Ordering},
+        Arc,
+    },
+    thread,
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 
-async fn run_server(desc: &[(&str, &str)]) -> ServerHandle {
+async fn run_server(desc: &[(&str, &str)]) -> u16 {
     let port = thread_rng().gen_range(49152..=65535);
-
     let mut app = tide::new();
     for (url, body) in desc {
-        app.at(url).get({
-            let body = str::replace(body, "$port", &port.to_string());
+        app.at(&url).get({
+            let body = str::replace(&body, "$port", &port.to_string());
             move |_| {
                 let body = body.clone();
                 async { Ok(body) }
             }
         });
     }
+    run_app(app, port).await;
+    port
+}
 
-    let handle = tokio::spawn(app.listen(format!("127.0.0.1:{}", port)));
+async fn run_app(app: tide::Server<()>, port: u16) {
+    thread::spawn(move || {
+        let runtime = runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap();
+        runtime
+            .block_on(app.listen(format!("127.0.0.1:{}", port)))
+            .unwrap();
+    });
+    wait_server_up(format!("http://localhost:{}/", port)).await;
+}
 
+async fn wait_server_up(address: impl AsRef<str>) {
     for i in 0..30 {
-        let res_req = reqwest::get(format!("http://127.0.0.1:{}{}", port, desc[0].0)).await;
+        let res_req = reqwest::get(address.as_ref()).await;
         match res_req {
             Ok(_) => break,
-            Err(_) => {
+            Err(err) => {
+                debug!("wait request failed: {}", err);
                 if i == 29 {
                     panic!("failed to wait for server readiness");
                 }
-                std::thread::sleep(std::time::Duration::from_millis(100));
+                sleep(std::time::Duration::from_millis(100)).await;
             }
         }
     }
-
-    ServerHandle { port, handle }
-}
-
-struct ServerHandle {
-    port: u16,
-    handle: tokio::task::JoinHandle<std::io::Result<()>>,
-}
-
-impl Drop for ServerHandle {
-    fn drop(&mut self) {
-        self.handle.abort();
-    }
+    debug!("server is ready");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -64,50 +73,44 @@ async fn recv_all(mut receiver: tokio::sync::mpsc::Receiver<Page>) -> Vec<Page> 
 
 ////////////////////////////////////////////////////////////////////////////////
 
-#[tokio::test]
+#[test(tokio::test)]
 async fn test_simple() {
-    let server = run_server(&[("/", "Hello, world!")]).await;
+    let port = run_server(&[("/", "Hello, world!")]).await;
     let mut cr = Crawler::new(Config::default());
-    let pages = recv_all(cr.run(format!("http://localhost:{}/", server.port))).await;
+    let pages = recv_all(cr.run(format!("http://localhost:{}/", port))).await;
 
     assert_eq!(pages.len(), 1);
-    assert_eq!(pages[0].url, format!("http://localhost:{}/", server.port));
+    assert_eq!(pages[0].url, format!("http://localhost:{}/", port));
     assert_eq!(pages[0].body, "Hello, world!");
 }
 
-#[tokio::test]
+#[test(tokio::test)]
 async fn test_circular() {
-    let server = run_server(&[
+    let port = run_server(&[
         ("/", "Hello, world!\n Go here: http://localhost:$port/foo"),
         ("/foo", "Foo!\n Go here: http://localhost:$port/"),
     ])
     .await;
 
     let mut cr = Crawler::new(Config::default());
-    let pages = recv_all(cr.run(format!("http://localhost:{}/", server.port))).await;
+    let pages = recv_all(cr.run(format!("http://localhost:{}/", port))).await;
 
     assert_eq!(pages.len(), 2);
-    assert_eq!(pages[0].url, format!("http://localhost:{}/", server.port));
+    assert_eq!(pages[0].url, format!("http://localhost:{}/", port));
     assert_eq!(
         pages[0].body,
-        format!(
-            "Hello, world!\n Go here: http://localhost:{}/foo",
-            server.port
-        )
+        format!("Hello, world!\n Go here: http://localhost:{}/foo", port)
     );
-    assert_eq!(
-        pages[1].url,
-        format!("http://localhost:{}/foo", server.port)
-    );
+    assert_eq!(pages[1].url, format!("http://localhost:{}/foo", port));
     assert_eq!(
         pages[1].body,
-        format!("Foo!\n Go here: http://localhost:{}/", server.port)
+        format!("Foo!\n Go here: http://localhost:{}/", port)
     );
 }
 
-#[tokio::test]
+#[test(tokio::test)]
 async fn test_repeated() {
-    let server = run_server(&[
+    let port = run_server(&[
         (
             "/",
             "Hi!\n Go here:
@@ -121,19 +124,16 @@ async fn test_repeated() {
     .await;
 
     let mut cr = Crawler::new(Config::default());
-    let pages = recv_all(cr.run(format!("http://localhost:{}/", server.port))).await;
+    let pages = recv_all(cr.run(format!("http://localhost:{}/", port))).await;
 
     assert_eq!(pages.len(), 2);
-    assert_eq!(pages[0].url, format!("http://localhost:{}/", server.port));
-    assert_eq!(
-        pages[1].url,
-        format!("http://localhost:{}/foo", server.port)
-    );
+    assert_eq!(pages[0].url, format!("http://localhost:{}/", port));
+    assert_eq!(pages[1].url, format!("http://localhost:{}/foo", port));
 }
 
-#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+#[test(tokio::test)]
 async fn test_repeated_concurrently() {
-    let server = run_server(&[
+    let port = run_server(&[
         (
             "/",
             "Hi!\n Go here:
@@ -151,19 +151,16 @@ async fn test_repeated_concurrently() {
     let mut cr = Crawler::new(Config {
         concurrent_requests: Some(4),
     });
-    let pages = recv_all(cr.run(format!("http://localhost:{}/", server.port))).await;
+    let pages = recv_all(cr.run(format!("http://localhost:{}/", port))).await;
 
     assert_eq!(pages.len(), 2);
-    assert_eq!(pages[0].url, format!("http://localhost:{}/", server.port));
-    assert_eq!(
-        pages[1].url,
-        format!("http://localhost:{}/foo", server.port)
-    );
+    assert_eq!(pages[0].url, format!("http://localhost:{}/", port));
+    assert_eq!(pages[1].url, format!("http://localhost:{}/foo", port));
 }
 
-#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+#[test(tokio::test)]
 async fn test_concurrently_same_link() {
-    let server = run_server(&[
+    let port = run_server(&[
         (
             "/",
             "Hi!\n Go here:
@@ -183,17 +180,17 @@ async fn test_concurrently_same_link() {
     let mut cr = Crawler::new(Config {
         concurrent_requests: Some(4),
     });
-    let pages = recv_all(cr.run(format!("http://localhost:{}/", server.port))).await;
+    let pages = recv_all(cr.run(format!("http://localhost:{}/", port))).await;
 
     assert_eq!(pages.len(), 6);
-    assert_eq!(pages[0].url, format!("http://localhost:{}/", server.port));
+    assert_eq!(pages[0].url, format!("http://localhost:{}/", port));
     assert!(pages
         .iter()
-        .find(|page| page.url == format!("http://localhost:{}/foo", server.port))
+        .find(|page| page.url == format!("http://localhost:{}/foo", port))
         .is_some());
 }
 
-#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+#[test(tokio::test)]
 async fn test_concurrency() {
     let port = thread_rng().gen_range(49152..=65535);
 
@@ -210,7 +207,7 @@ async fn test_concurrency() {
             async move {
                 let last = concurrency_counter.fetch_add(1, Ordering::SeqCst);
                 max_concurrency_counter.fetch_max(last + 1, Ordering::SeqCst);
-                std::thread::sleep(std::time::Duration::from_millis(500));
+                sleep(std::time::Duration::from_millis(500)).await;
                 concurrency_counter.fetch_sub(1, Ordering::SeqCst);
                 Ok(body)
             }
@@ -229,8 +226,7 @@ async fn test_concurrency() {
     app.at("/2").get(make_handler("Page #2".to_string()));
     app.at("/3").get(make_handler("Page #3".to_string()));
 
-    let handle = tokio::spawn(app.listen(format!("127.0.0.1:{}", port)));
-    let _server_handle = ServerHandle { port, handle };
+    run_app(app, port).await;
 
     let mut cr = Crawler::new(Config {
         concurrent_requests: Some(2),
@@ -241,7 +237,7 @@ async fn test_concurrency() {
     assert_eq!(pages.len(), 4);
 }
 
-#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+#[test(tokio::test)]
 async fn test_concurrency_1() {
     let port = thread_rng().gen_range(49152..=65535);
 
@@ -258,7 +254,7 @@ async fn test_concurrency_1() {
             async move {
                 let last = concurrency_counter.fetch_add(1, Ordering::SeqCst);
                 max_concurrency_counter.fetch_max(last + 1, Ordering::SeqCst);
-                std::thread::sleep(std::time::Duration::from_millis(500));
+                sleep(std::time::Duration::from_millis(500)).await;
                 concurrency_counter.fetch_sub(1, Ordering::SeqCst);
                 Ok(body)
             }
@@ -283,8 +279,7 @@ async fn test_concurrency_1() {
     app.at("/2").get(make_handler("Page #2".to_string()));
     app.at("/3").get(make_handler("Page #3".to_string()));
 
-    let handle = tokio::spawn(app.listen(format!("127.0.0.1:{}", port)));
-    let _server_handle = ServerHandle { port, handle };
+    run_app(app, port).await;
 
     let mut cr = Crawler::new(Config {
         concurrent_requests: Some(3),
@@ -295,7 +290,7 @@ async fn test_concurrency_1() {
     assert_eq!(pages.len(), 5);
 }
 
-#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+#[test(tokio::test)]
 async fn test_concurrency_2() {
     let port = thread_rng().gen_range(49152..=65535);
 
@@ -312,7 +307,7 @@ async fn test_concurrency_2() {
             async move {
                 let last = concurrency_counter.fetch_add(1, Ordering::SeqCst);
                 max_concurrency_counter.fetch_max(last + 1, Ordering::SeqCst);
-                std::thread::sleep(std::time::Duration::from_millis(500));
+                sleep(std::time::Duration::from_millis(500)).await;
                 concurrency_counter.fetch_sub(1, Ordering::SeqCst);
                 Ok(body)
             }
@@ -354,8 +349,7 @@ async fn test_concurrency_2() {
     app.at("/3/7").get(make_handler("Page #7".to_string()));
     app.at("/3/8").get(make_handler("Page #8".to_string()));
 
-    let handle = tokio::spawn(app.listen(format!("127.0.0.1:{}", port)));
-    let _server_handle = ServerHandle { port, handle };
+    run_app(app, port).await;
 
     let mut cr = Crawler::new(Config {
         concurrent_requests: Some(2),

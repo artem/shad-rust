@@ -516,10 +516,10 @@ impl BlockForest {
             .checked_add(tx.amount)
             .context("receiver balance overflows u64")?;
 
-        for (key, value) in std::array::IntoIter::new([
+        for (key, value) in [
             (tx.sender.clone(), new_sender_balance),
             (tx.receiver.clone(), new_receiver_balance),
-        ]) {
+        ] {
             if value > 0 {
                 snapshot.insert(key, value);
             } else {

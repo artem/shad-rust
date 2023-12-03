@@ -1,8 +1,3 @@
-use std::{
-    sync::{Arc, RwLock},
-    thread,
-};
-
 use crate::{
     data::{
         Block, BlockAttributes, BlockHash, Transaction, VerifiedBlock, VerifiedTransaction,
@@ -13,18 +8,28 @@ use crate::{
 
 use anyhow::{Context, Result};
 use chrono::Utc;
-use crossbeam::channel::{Receiver, Sender};
-use crossbeam::{channel, select};
+use futures::{stream, Stream, StreamExt};
 use log::*;
 use rand::{thread_rng, Rng};
-use rayon::{ThreadPool, ThreadPoolBuilder};
 use serde::{Deserialize, Serialize};
+use tokio::{
+    pin, select,
+    sync::mpsc::{Receiver, Sender},
+};
+
+use std::{
+    sync::{
+        mpsc::{self, SyncSender},
+        Arc, RwLock,
+    },
+    thread,
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 
 #[derive(Serialize, Deserialize)]
 pub struct MiningServiceConfig {
-    pub thread_count: usize,
+    pub mining_thread_count: usize,
     pub max_tx_per_block: usize,
 
     #[serde(
@@ -37,9 +42,9 @@ pub struct MiningServiceConfig {
 impl Default for MiningServiceConfig {
     fn default() -> Self {
         Self {
-            thread_count: 0,
+            mining_thread_count: 0,
             max_tx_per_block: 0,
-            public_key: WalletId::of_genesis(),
+            public_key: WalletId::genesis(),
         }
     }
 }
@@ -55,9 +60,6 @@ pub struct MiningInfo {
 }
 
 pub struct MiningService {
-    config: MiningServiceConfig,
-    info_receiver: Receiver<MiningInfo>,
-    block_sender: Sender<VerifiedBlock>,
     // TODO: your code here.
 }
 
@@ -71,9 +73,22 @@ impl MiningService {
         unimplemented!()
     }
 
-    pub fn run(&mut self) {
+    pub async fn run(&mut self) -> Result<()> {
         // TODO: your code here.
         unimplemented!()
+    }
+
+    fn make_block_stream(
+        receiver: mpsc::Receiver<VerifiedBlock>,
+    ) -> impl Stream<Item = VerifiedBlock> {
+        stream::unfold(receiver, |receiver| async {
+            tokio::task::spawn_blocking(move || {
+                receiver.recv().ok().map(move |block| (block, receiver))
+            })
+            .await
+            .ok()
+            .flatten()
+        })
     }
 
     // TODO: your code here.

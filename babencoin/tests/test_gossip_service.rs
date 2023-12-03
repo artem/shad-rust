@@ -271,7 +271,7 @@ fn test_no_bad_block_memoization() {
 #[test]
 fn test_eager_requests() {
     let mut config = node::Config::default();
-    config.gossip_service.eager_requests_interval = time::Duration::from_millis(200);
+    config.gossip_app.service.eager_requests_interval = time::Duration::from_millis(200);
 
     let env = test_env!("test_eager_requests", config);
 

@@ -20,12 +20,17 @@ impl<T, const N: usize> ArrayVec<T, N> {
         unimplemented!()
     }
 
+    pub fn capacity(&self) -> usize {
+        // TODO: your code here.
+        unimplemented!()
+    }
+
     pub fn is_empty(&self) -> bool {
         // TODO: your code here.
         unimplemented!()
     }
 
-    pub fn push(&mut self, obj: T) -> Option<T> {
+    pub fn push(&mut self, obj: T) -> Result<(), T> {
         // TODO: your code here.
         unimplemented!()
     }

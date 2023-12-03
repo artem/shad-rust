@@ -1,0 +1,19 @@
+[package]
+name = "rio"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+futures = "0.3.21"
+log = "0.4.17"
+mio = { version = "0.8.2", features = ["net", "os-poll"] }
+rio-macros = { path = "./rio-macros" }
+thiserror = "1.0.30"
+tracing = "0.1.37"
+tracing-error = "0.2.0"
+tracing-tree = "0.2.2"
+
+[dev-dependencies]
+env_logger = "0.9.1"
+test-log = { version = "0.2.11", features = ["trace"] }
+tracing-subscriber = { version = "0.3.16", features = ["env-filter", "json", "tracing-log"] }

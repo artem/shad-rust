@@ -32,7 +32,7 @@ pub struct WalletId {
 }
 
 impl WalletId {
-    pub fn of_genesis() -> Self {
+    pub fn genesis() -> Self {
         parse_pkcs8_public(include_str!("../data/genesis.crt"))
             .unwrap()
             .into()
@@ -164,10 +164,10 @@ impl Block {
         Block {
             attrs: BlockAttributes {
                 index: 0,
-                timestamp: Utc.timestamp(GENESIS_TIMESTAMP, 0),
+                timestamp: Utc.timestamp_opt(GENESIS_TIMESTAMP, 0).unwrap(),
                 reward: 0,
                 nonce: 0,
-                issuer: WalletId::of_genesis(),
+                issuer: WalletId::genesis(),
                 max_hash: [255u8; HASH_LEN],
                 prev_hash: [0u8; HASH_LEN],
             },
@@ -229,8 +229,8 @@ impl Block {
         hasher.write_u64::<LittleEndian>(attrs.nonce).unwrap();
         hasher.update(attrs.issuer.public_key.n().to_bytes_le());
         hasher.update(attrs.issuer.public_key.e().to_bytes_le());
-        hasher.update(&attrs.max_hash);
-        hasher.update(&attrs.prev_hash);
+        hasher.update(attrs.max_hash);
+        hasher.update(attrs.prev_hash);
         for tx_hash in transaction_hashes.into_iter() {
             hasher.update(tx_hash);
         }
@@ -446,7 +446,7 @@ mod tests {
                     index: 1,
                     reward: MAX_REWARD,
                     nonce: 27532,
-                    timestamp: Utc.timestamp(1626003028, 0),
+                    timestamp: Utc.timestamp_opt(1626003028, 0).unwrap(),
                     issuer: priv_key.to_public_key().into(),
                     max_hash: [255u8; HASH_LEN],
                     prev_hash: *genesis.hash(),

@@ -4,11 +4,19 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-futures = "0.3.17"
-linkify = "0.8.0"
-reqwest = "0.11.6"
-tokio = { version = "1.14.0", features = ["sync", "rt", "rt-multi-thread", "macros"] }
+futures = "0.3.25"
+linkify = "0.9.0"
+log = "0.4.17"
+reqwest = "0.11.13"
+tokio = { version = "1.22.0", features = ["sync", "rt", "rt-multi-thread", "macros"] }
+tracing = "0.1.37"
+tracing-error = "0.2.0"
+tracing-tree = "0.2.2"
 
 [dev-dependencies]
-rand = "0.8.4"
+async-std = { version = "1.12.0", features = ["tokio1"] }
+env_logger = "0.10.0"
+rand = "0.8.5"
+test-log = { version = "0.2.11", features = ["trace"] }
 tide = "0.16.0"
+tracing-subscriber = { version = "0.3.16", features = ["env-filter", "json", "tracing-log"] }
