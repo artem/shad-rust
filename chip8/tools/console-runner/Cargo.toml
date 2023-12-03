@@ -1,0 +1,9 @@
+[package]
+name = "console-runner"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+chip8 = { path = "../.." }
+rand = "0.8.5"
+ruscii = "0.4.0"

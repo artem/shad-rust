@@ -282,8 +282,7 @@ Mining service получает от gossip service информацию о то
 async fn foo() { /* ... */ }
 
 async fn do(receiver: Receiver<...>) {
-    let foo_future = foo();
-    tokio::pin!(foo_future);
+    let mut foo_future = std::pin::pin!(foo());
 
     loop {
         tokio::select! {
@@ -291,7 +290,7 @@ async fn do(receiver: Receiver<...>) {
                 info!("foo terminated");
                 break;
             }
-            value = receiver.recv() => {
+            value = receiver.recv() {
                 do_stuff(value);
             }
         }
@@ -305,16 +304,7 @@ async fn do(receiver: Receiver<...>) {
 и [TcpStream](https://docs.rs/tokio/latest/tokio/net/struct.TcpStream.html). Они очень похожи на соответствующие типы в std.
 * Для прослушивания TCP-порта и установления соединений может быть удобно
 иметь отдельные async-методы `listen_loop` и `dial_loop`, где последний пытается установить соединение с конкретным адресом из конфига. Чтобы агрегировать заранее
-неизвестное число фьюч `dial_loop` в стрим, используйте [FuturesUnordered](https://docs.rs/futures/latest/futures/stream/struct.FuturesUnordered.html). Пример использования:
-
-```rust
-let mut futures = FuturesUnordered::new();
-futures.push(dial_loop(address));
-while let Some(result) = futures.next().await {
-	// ...
-}
-```
-
+неизвестное число фьюч `dial_loop` в одну фьючу, используйте [FuturesUnordered](https://docs.rs/futures/latest/futures/stream/struct.FuturesUnordered.html).
 * Для вас уже написан `MessageReader`, который конвертирует `ReadHalf` (получаемый из `TcpStream::split`)
 в stream `VerifiedPeerMessage`. Чтобы достать следующий элемент стрима, используйте `.next()`.
 * Обработку соединения с каждым отдельным пиром проще иметь в виде независимой таски.
@@ -322,8 +312,7 @@ while let Some(result) = futures.next().await {
 
 ### 3.3. Советы по GossipService
 
-* Для периодических eager-запросов удобно использовать [tokio::time::interval](https://docs.rs/tokio/latest/tokio/time/fn.interval.html).
-Заметьте, что значение `eager_requests_interval`, равное 0, нужно интерпретировать как отключение eager requests.
+* Значение `eager_requests_interval`, равное 0, нужно интерпретировать как отключение eager requests.
 * GissipService - единственный сервис из трёх, который что-то знает про блокчейн
 глобально. Это знание вам нужно извлекать через `BlockForest`.
 

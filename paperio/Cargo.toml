@@ -1,0 +1,16 @@
+[package]
+name = "paperio"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "paperio-bot"
+path = "src/main.rs"
+
+[dependencies]
+num-derive = "0.4.0"
+num-traits = "0.2.16"
+rand = "0.8.5"
+serde = { version = "1.0.185", features = ["derive"] }
+serde_json = "1.0.105"
+strum = { version = "0.25.0", features = ["derive"] }

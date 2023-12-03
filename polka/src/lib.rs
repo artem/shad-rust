@@ -1,5 +1,7 @@
 #![forbid(unsafe_code)]
 
+use std::{collections::HashMap, fmt::Display};
+
 ////////////////////////////////////////////////////////////////////////////////
 
 #[derive(Clone, Debug, PartialEq)]

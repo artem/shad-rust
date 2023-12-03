@@ -16,16 +16,16 @@ base_no_miri_no_clippy: lint_no_clippy test allowlist
 
 lint_unsafe:
 	cargo clippy
-	@if [ "$$(cargo clippy 2>&1 | grep -v Finished | grep -v Checking)" ]; \
-		then exit 1; \
+	@if [ "$$(cargo clippy 2>&1 | grep -v Finished | grep -v Checking | grep -v Blocking)" ]; \
+		then echo "ERROR: 'cargo clippy' found some issues (see above)"; exit 1; \
 	fi
 
 	cargo fmt -- --check
 
 lint_unsafe_no_std:
 	cargo clippy
-	@if [ "$$(cargo clippy 2>&1 | grep -v Finished | grep -v Checking)" ]; \
-		then exit 1; \
+	@if [ "$$(cargo clippy 2>&1 | grep -v Finished | grep -v Checking | grep -v Blocking)" ]; \
+		then echo "ERROR: 'cargo clippy' found some issues (see above)"; exit 1; \
 	fi
 
 	cargo fmt -- --check
@@ -37,8 +37,8 @@ lint_unsafe_no_std:
 
 lint: lint_no_clippy
 	cargo clippy
-	@if [ "$$(cargo clippy 2>&1 | grep -v Finished | grep -v Checking)" ]; \
-		then exit 1; \
+	@if [ "$$(cargo clippy 2>&1 | grep -v Finished | grep -v Checking | grep -v Blocking)" ]; \
+		then echo "ERROR: `cargo clippy` found some issues (see above)"; exit 1; \
 	fi
 
 lint_no_clippy:

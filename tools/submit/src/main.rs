@@ -18,9 +18,13 @@ const REMOTE_NAME: &str = "student";
 #[derive(StructOpt, Debug)]
 #[structopt()]
 struct Opts {
-    /// Path to the student repository.
+    /// Path to the task directory.
     #[structopt(short = "t", long = "task-path")]
     task_path: PathBuf,
+
+    /// Subtask name.
+    #[structopt(short = "s", long = "subtask")]
+    subtask: Option<String>,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -64,14 +68,23 @@ fn does_remote_exist(repo: &Repository, remote: &str) -> Result<bool> {
     }
 }
 
-fn push_task(path: &Path, task_name: &str, remote_name: &str) -> Result<()> {
+fn push_task(
+    path: &Path,
+    task_name: &str,
+    remote_name: &str,
+    subtask_name: Option<&str>,
+) -> Result<()> {
     // NB: push using git as a subcommand is way less tedious than using libgit2.
+    let branch_name = match subtask_name {
+        Some(subtask) => format!("submit/{}@{}", subtask, task_name),
+        None => format!("submit/{}", task_name),
+    };
     let status = Command::new("git")
         .args(&[
             "push",
             "--force",
             remote_name,
-            &format!("HEAD:submit/{}", task_name),
+            &format!("HEAD:{}", branch_name),
         ])
         .current_dir(path)
         .spawn()
@@ -121,7 +134,13 @@ fn do_main(opts: Opts) -> Result<()> {
         );
     }
 
-    push_task(&opts.task_path, &task_name, REMOTE_NAME).context("failed to push task")
+    push_task(
+        &opts.task_path,
+        &task_name,
+        REMOTE_NAME,
+        opts.subtask.as_deref(),
+    )
+    .context("failed to push task")
 }
 
 fn main() {

@@ -19,7 +19,7 @@ fn decode_pkcs8_plaintext(raw: &str) -> Result<Vec<u8>> {
                 data.push_str(line);
                 data
             });
-    base64::decode(&der_encoded).context("failed to decode base64")
+    base64::decode(der_encoded).context("failed to decode base64")
 }
 
 pub fn parse_pkcs8_public(raw: &str) -> Result<RSAPublicKey> {
@@ -47,7 +47,7 @@ where
     D: Deserializer<'de>,
 {
     let string = String::deserialize(deserializer)?;
-    base64::decode(&string).map_err(|err| de::Error::custom(format!("invalid base64: {}", err)))
+    base64::decode(string).map_err(|err| de::Error::custom(format!("invalid base64: {}", err)))
 }
 
 pub fn deserialize_base64_fixed<'de, D, const SIZE: usize>(

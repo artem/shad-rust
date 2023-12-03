@@ -67,3 +67,36 @@ fn test_no_clone() {
         stack = tail;
     }
 }
+
+#[test]
+fn test_iter_simple() {
+    let mut stack = PStack::new();
+    for i in 0..100 {
+        stack = stack.push(i);
+    }
+
+    for (i, value) in stack.iter().enumerate() {
+        assert_eq!((100 - i - 1) as i32, *value);
+    }
+}
+
+#[test]
+fn test_iter_parallel() {
+    let mut stack = PStack::new();
+    for i in 0..100 {
+        stack = stack.push(i);
+    }
+    let mut iter_one = stack.iter();
+
+    for i in 100..200 {
+        stack = stack.push(i);
+    }
+    let mut iter_two = stack.iter();
+
+    for i in 0..200 {
+        if i < 100 {
+            assert_eq!(iter_one.next().as_deref().copied(), Some(100 - i - 1));
+        }
+        assert_eq!(iter_two.next().as_deref().copied(), Some(200 - i - 1));
+    }
+}

@@ -77,6 +77,9 @@ impl BoolGrid {
         // TODO: your code here.
         unimplemented!()
     }
+
+    // TODO: your code here.
+    unimplemented!()
 }
 
 ////////////////////////////////////////////////////////////////////////////////

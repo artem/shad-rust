@@ -11,12 +11,13 @@ use log::*;
 use rand::{seq::SliceRandom, thread_rng};
 use serde::{Deserialize, Serialize};
 use tokio::{
-    pin, select,
+    select,
     sync::mpsc::{Receiver, Sender},
 };
 
 use std::{
     collections::{HashMap, HashSet},
+    pin::pin,
     time::Duration,
 };
 

@@ -21,6 +21,13 @@ fn test_simple() {
 }
 
 #[test]
+fn test_order() {
+    let mut inter = Interpreter::new();
+    test(&mut inter, "1 2 -", &[Value::Number(1.)]);
+    test(&mut inter, "2 /", &[Value::Number(2.)]);
+}
+
+#[test]
 fn test_variables() {
     let mut inter = Interpreter::new();
     test(&mut inter, "4 5 * 'x set", &[]);

@@ -1,6 +1,6 @@
-use std::time::{Duration, Instant};
-
 use test_log::test;
+
+use std::time::{Duration, Instant};
 
 ////////////////////////////////////////////////////////////////////////////////
 

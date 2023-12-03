@@ -6,7 +6,8 @@ edition = "2021"
 [dependencies]
 futures = "0.3.21"
 log = "0.4.17"
-mio = { version = "0.8.2", features = ["net", "os-poll"] }
+mio = { version = "0.8.2", features = ["net", "os-poll"], optional = true }
+rayon = { version = "1.8.0", optional = true }
 rio-macros = { path = "./rio-macros" }
 thiserror = "1.0.30"
 tracing = "0.1.37"
@@ -15,5 +16,11 @@ tracing-tree = "0.2.2"
 
 [dev-dependencies]
 env_logger = "0.9.1"
+nix = { version = "0.27.1", features = ["fs"] }
 test-log = { version = "0.2.11", features = ["trace"] }
 tracing-subscriber = { version = "0.3.16", features = ["env-filter", "json", "tracing-log"] }
+
+[features]
+rt-multi-thread = ["rayon"]
+net = ["mio"]
+default = ["rt-multi-thread"]

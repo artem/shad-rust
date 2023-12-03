@@ -12,7 +12,7 @@ pub fn test(_attrs: TokenStream, stream: TokenStream) -> TokenStream {
     let brace_token = input.block.brace_token;
     let block_expr = quote! {
         {
-            return ::rio::Runtime::default()
+            return ::rio::Runtime::new_current_thread()
                 .block_on(body);
         }
     };

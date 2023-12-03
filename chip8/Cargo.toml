@@ -1,0 +1,10 @@
+[package]
+name = "chip8"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+thiserror = "1.0.49"
+
+[dev-dependencies]
+rand = "0.8.5"

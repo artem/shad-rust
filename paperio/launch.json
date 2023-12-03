@@ -1,0 +1,25 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "Debug executable 'paperio-bot'",
+			"cargo": {
+				"args": [
+					"build",
+					"--bin=paperio-bot",
+					"--package=paperio"
+				],
+				"filter": {
+					"name": "paperio-bot",
+					"kind": "bin"
+				}
+			},
+			"args": [
+				"8000"
+			],
+			"cwd": "${workspaceFolder}"
+		}
+	]
+}

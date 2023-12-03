@@ -1,128 +1,106 @@
+mod current_thread;
+mod task;
+
+#[cfg(feature = "rt-multi-thread")]
+mod multi_thread;
+
+////////////////////////////////////////////////////////////////////////////////
+
+use current_thread::CurrentThreadScheduler;
+use task::Task;
+
+#[cfg(feature = "rt-multi-thread")]
+use multi_thread::MultiThreadScheduler;
+
+use futures::{channel::oneshot, FutureExt};
+use thiserror::Error;
+
 use std::{
-    collections::{HashMap, VecDeque},
+    future::Future,
     pin::Pin,
-    sync::{Arc, Mutex, MutexGuard},
-    task::Context,
-    thread::{self, Thread},
+    sync,
+    task::{Context, Poll},
 };
 
-use futures::{task::ArcWake, Future};
-use log::debug;
+use crate::runtime::ContextManager;
 
 ////////////////////////////////////////////////////////////////////////////////
 
-pub type TaskId = u64;
-type BoxedTask = Pin<Box<dyn Future<Output = ()> + Send>>;
+pub enum Scheduler {
+    CurrentThread(CurrentThreadScheduler),
 
-struct SchedulerState {
-    tasks: HashMap<TaskId, BoxedTask>,
-    run_queue: VecDeque<TaskId>,
-    next_id: u64,
-    thread: Thread,
-}
-
-impl Default for SchedulerState {
-    fn default() -> Self {
-        Self {
-            tasks: Default::default(),
-            run_queue: Default::default(),
-            next_id: 0,
-            thread: thread::current(),
-        }
-    }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
-#[derive(Default)]
-pub struct Scheduler {
-    state: Arc<Mutex<SchedulerState>>,
+    #[cfg(feature = "rt-multi-thread")]
+    MultiThread(MultiThreadScheduler),
 }
 
 impl Scheduler {
-    pub fn submit<T>(&self, task: T) -> TaskId
+    pub fn new_current_thread(context_manager: ContextManager) -> Self {
+        Scheduler::CurrentThread(CurrentThreadScheduler::new(context_manager))
+    }
+
+    #[cfg(feature = "rt-multi-thread")]
+    pub fn new_multi_thread(context_manager: ContextManager, num_threads: usize) -> Self {
+        Scheduler::MultiThread(MultiThreadScheduler::new(context_manager, num_threads))
+    }
+
+    pub fn spawn<T>(&self, future: T) -> JoinHandle<T::Output>
     where
-        T: Future<Output = ()> + Send + 'static,
+        T: Future + Send + 'static,
+        T::Output: Send,
     {
-        let boxed_task = Box::pin(task);
+        let (sender, receiver) = oneshot::channel();
+        let task = Task::from(async move {
+            let _ = sender.send(future.await);
+        });
 
-        let task_id = {
-            let mut state = self.lock_state();
+        match self {
+            Scheduler::CurrentThread(current_thread) => current_thread.submit(task),
 
-            let task_id = state.next_id;
-            state.next_id += 1;
+            #[cfg(feature = "rt-multi-thread")]
+            Scheduler::MultiThread(multi_thread) => multi_thread.submit(task),
+        }
 
-            let prev_task = state.tasks.insert(task_id, boxed_task);
-            assert!(prev_task.is_none(), "duplicate task id in scheduler");
-
-            state.run_queue.push_back(task_id);
-            state.thread.unpark();
-            task_id
-        };
-
-        debug!("submitted task #{}", task_id);
-        task_id
+        JoinHandle { receiver }
     }
 
-    pub fn block_on(&self, root_task_id: TaskId) {
-        {
-            let mut state = self.lock_state();
-            assert!(state.tasks.contains_key(&root_task_id));
-            state.thread = thread::current();
+    pub fn block_on<T>(&self, future: T) -> T::Output
+    where
+        T: Future + Send + 'static,
+        T::Output: Send,
+    {
+        let (sender, receiver) = sync::mpsc::sync_channel(1);
+        let task = Task::from(async move {
+            let _ = sender.send(future.await);
+        });
+
+        match self {
+            Scheduler::CurrentThread(current_thread) => current_thread.run_until_done(task),
+
+            #[cfg(feature = "rt-multi-thread")]
+            Scheduler::MultiThread(multi_thread) => multi_thread.submit(task),
         }
-        loop {
-            let mb_task = 'find_task: {
-                let mut state = self.lock_state();
-                while let Some(task_id) = state.run_queue.pop_front() {
-                    if let Some(task) = state.tasks.remove(&task_id) {
-                        break 'find_task Some((task_id, task));
-                    }
-                }
-                None
-            };
 
-            let Some((task_id, mut task)) = mb_task else {
-                thread::park();
-                continue;
-            };
-
-            let waker = futures::task::waker(Arc::new(Waker {
-                scheduler_state: self.state.clone(),
-                task_id,
-            }));
-            let mut context = Context::from_waker(&waker);
-
-            debug!("polling task #{}", task_id);
-            if task.as_mut().poll(&mut context).is_pending() {
-                self.lock_state().tasks.insert(task_id, task);
-            } else if task_id == root_task_id {
-                return;
-            }
-        }
-    }
-
-    fn lock_state(&self) -> MutexGuard<'_, SchedulerState> {
-        self.state
-            .lock()
-            .expect("failed to lock scheduler state in scheduler")
+        receiver.recv().expect("recv() failed in block_on")
     }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-struct Waker {
-    scheduler_state: Arc<Mutex<SchedulerState>>,
-    task_id: TaskId,
+pub struct JoinHandle<T> {
+    receiver: oneshot::Receiver<T>,
 }
 
-impl ArcWake for Waker {
-    fn wake_by_ref(arc_self: &Arc<Self>) {
-        debug!("waking task #{}", arc_self.task_id);
-        let mut state = arc_self
-            .scheduler_state
-            .lock()
-            .expect("failed to lock scheduler state in waker");
-        state.run_queue.push_back(arc_self.task_id);
-        state.thread.unpark();
+#[derive(Debug, Error)]
+#[error("the task has been dropped")]
+pub struct JoinError {}
+
+impl<T> Future for JoinHandle<T> {
+    type Output = Result<T, JoinError>;
+
+    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        self.get_mut()
+            .receiver
+            .poll_unpin(cx)
+            .map_err(|_| JoinError {})
     }
 }

@@ -3,7 +3,7 @@ use crate::data::{PeerMessage, VerifiedPeerMessage};
 use anyhow::{bail, Context, Result};
 use futures::{
     stream::{self, FuturesUnordered},
-    Stream, StreamExt,
+    FutureExt, Stream, StreamExt,
 };
 use log::*;
 use serde::{Deserialize, Serialize};
@@ -13,13 +13,14 @@ use tokio::{
         tcp::{ReadHalf, WriteHalf},
         TcpListener, TcpStream,
     },
-    pin, select,
+    select,
     sync::mpsc::{channel, Receiver, Sender},
     task::JoinHandle,
 };
 
 use std::{
     collections::HashMap,
+    pin::pin,
     sync::{
         atomic::{AtomicU64, Ordering},
         Mutex,
